@@ -47,12 +47,14 @@ Claude Code CLI → Express Server (server.js) → CloudCode Client → Antigrav
 
 **Key Modules:**
 
-- **src/server.js**: Express server exposing Anthropic-compatible endpoints (`/v1/messages`, `/v1/models`, `/health`, `/account-limits`)
+- **src/server.js**: Express server exposing Anthropic-compatible endpoints (`/v1/messages`, `/v1/models`, `/health`, `/account-limits`) and OpenAI-compatible endpoint (`/v1/chat/completions`)
 - **src/cloudcode-client.js**: Makes requests to Antigravity Cloud Code API with retry/failover logic, handles both streaming and non-streaming
-- **src/format/**: Format conversion module (Anthropic ↔ Google Generative AI)
+- **src/format/**: Format conversion module (Anthropic ↔ Google Generative AI, OpenAI ↔ Internal)
   - `index.js` - Re-exports all converters
   - `request-converter.js` - Anthropic → Google request conversion
   - `response-converter.js` - Google → Anthropic response conversion
+  - `openai-request-converter.js` - OpenAI → Internal request conversion (for GitHub Copilot)
+  - `openai-response-converter.js` - Internal → OpenAI response conversion with streaming support
   - `content-converter.js` - Message content and role conversion
   - `schema-sanitizer.js` - JSON Schema cleaning for Gemini API compatibility (preserves constraints/enums as hints)
   - `thinking-utils.js` - Thinking block validation, filtering, reordering, and recovery logic

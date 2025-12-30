@@ -258,8 +258,81 @@ curl "http://localhost:8080/account-limits?format=table"
 | `/health` | GET | Health check |
 | `/account-limits` | GET | Account status and quota limits (add `?format=table` for ASCII table) |
 | `/v1/messages` | POST | Anthropic Messages API |
+| `/v1/chat/completions` | POST | OpenAI Chat Completions API (for GitHub Copilot) |
 | `/v1/models` | GET | List available models |
 | `/refresh-token` | POST | Force token refresh |
+
+---
+
+## Using with VS Code GitHub Copilot
+
+The proxy supports OpenAI Chat Completions API format, making it compatible with GitHub Copilot's custom model feature.
+
+> **⚠️ Note:** The `customOAIModels` setting requires **VS Code Insiders**. For stable VS Code, use the [Continue extension](#using-with-continue-extension) instead.
+
+### Requirements
+
+- VS Code Insiders (version 1.104+)
+- GitHub Copilot extension
+
+### Configure Custom Model
+
+1. Start the proxy server: `npm start`
+
+2. Open VS Code settings (`Ctrl+,` or `Cmd+,`)
+
+3. Search for "copilot custom" and click "Edit in settings.json"
+
+4. Add the custom model configuration:
+
+```json
+{
+  "github.copilot.chat.customOAIModels": {
+    "opus-proxy": {
+      "name": "Opus-Proxy (Antigravity)",
+      "url": "http://localhost:8080/v1/chat/completions",
+      "toolCalling": true,
+      "vision": false,
+      "maxInputTokens": 200000,
+      "maxOutputTokens": 16384,
+      "requiresAPIKey": false
+    }
+  }
+}
+```
+
+5. In Copilot Chat, click the model dropdown and select "Opus-Proxy (Antigravity)"
+
+---
+
+## Using with Continue Extension
+
+The [Continue](https://continue.dev) extension works with any VS Code version and provides an excellent AI coding assistant experience.
+
+See [CONTINUE-SETUP.md](CONTINUE-SETUP.md) for detailed setup instructions.
+
+### Quick Setup
+
+1. Install Continue extension: Search "Continue" in VS Code extensions
+
+2. Open Continue config: `Ctrl+Shift+P` → "Continue: Open Config"
+
+3. Add the proxy models to your `config.yaml`:
+
+```yaml
+models:
+  - name: Opus-Proxy (Antigravity)
+    provider: openai
+    model: opus-proxy
+    apiBase: http://localhost:8080/v1
+    apiKey: test
+    roles:
+      - chat
+      - edit
+      - apply
+```
+
+4. Select "Opus-Proxy (Antigravity)" from the model dropdown in Continue
 
 ---
 

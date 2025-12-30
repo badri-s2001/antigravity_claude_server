@@ -25,14 +25,17 @@
     "test:streaming": "node tests/test-multiturn-thinking-tools-streaming.cjs",
     "test:interleaved": "node tests/test-interleaved-thinking.cjs",
     "test:images": "node tests/test-images.cjs",
-    "test:caching": "node tests/test-caching-streaming.cjs"
+    "test:caching": "node tests/test-caching-streaming.cjs",
+    "test:openai": "node tests/test-openai-compat.cjs"
   },
   "keywords": [
     "claude",
     "anthropic",
     "antigravity",
     "proxy",
-    "vertex-ai"
+    "vertex-ai",
+    "openai",
+    "copilot"
   ],
   "author": "Badri Narayanan",
   "license": "MIT",

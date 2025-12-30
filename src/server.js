@@ -2,6 +2,7 @@
  * Express Server - Anthropic-compatible API
  * Proxies to Google Cloud Code via Antigravity
  * Supports multi-account load balancing
+ * Also supports OpenAI Chat Completions API format for GitHub Copilot compatibility
  */
 
 import express from 'express';
@@ -11,6 +12,8 @@ import { forceRefresh } from './token-extractor.js';
 import { REQUEST_BODY_LIMIT } from './constants.js';
 import { AccountManager } from './account-manager.js';
 import { formatDuration } from './utils/helpers.js';
+import { convertOpenAIToInternal, convertToOpenAI, streamToOpenAIFormat } from './format/index.js';
+
 
 const app = express();
 
@@ -532,6 +535,136 @@ app.post('/v1/messages', async (req, res) => {
                 error: {
                     type: errorType,
                     message: errorMessage
+                }
+            });
+        }
+    }
+});
+
+/**
+ * OpenAI Chat Completions API endpoint
+ * Compatible with VS Code GitHub Copilot custom models
+ */
+app.post('/v1/chat/completions', async (req, res) => {
+    try {
+        // Ensure account manager is initialized
+        await ensureInitialized();
+
+        // Optimistic Retry: If ALL accounts are rate-limited, reset them
+        if (accountManager.isAllRateLimited()) {
+            console.log('[Server] All accounts rate-limited. Resetting state for optimistic retry.');
+            accountManager.resetAllRateLimits();
+        }
+
+        const {
+            model,
+            messages,
+            max_tokens,
+            stream,
+            temperature,
+            top_p,
+            stop,
+            tools,
+            tool_choice
+        } = req.body;
+
+        // Validate required fields
+        if (!messages || !Array.isArray(messages)) {
+            return res.status(400).json({
+                error: {
+                    message: 'messages is required and must be an array',
+                    type: 'invalid_request_error',
+                    code: 'invalid_messages'
+                }
+            });
+        }
+
+        console.log(`[API:OpenAI] Request for model: ${model || 'default'}, stream: ${!!stream}`);
+
+        // Convert OpenAI request to internal format
+        const internalRequest = convertOpenAIToInternal({
+            model,
+            messages,
+            max_tokens,
+            temperature,
+            top_p,
+            stop,
+            stream,
+            tools,
+            tool_choice
+        });
+
+        if (stream) {
+            // Handle streaming response in OpenAI format
+            res.setHeader('Content-Type', 'text/event-stream');
+            res.setHeader('Cache-Control', 'no-cache');
+            res.setHeader('Connection', 'keep-alive');
+            res.setHeader('X-Accel-Buffering', 'no');
+
+            // Flush headers immediately
+            res.flushHeaders();
+
+            try {
+                // Use the streaming generator and convert to OpenAI format
+                const anthropicStream = sendMessageStream(internalRequest, accountManager);
+
+                for await (const chunk of streamToOpenAIFormat(anthropicStream, model || internalRequest.model)) {
+                    res.write(chunk);
+                    if (res.flush) res.flush();
+                }
+                res.end();
+
+            } catch (streamError) {
+                console.error('[API:OpenAI] Stream error:', streamError);
+                const errorResponse = {
+                    error: {
+                        message: streamError.message,
+                        type: 'api_error'
+                    }
+                };
+                res.write(`data: ${JSON.stringify(errorResponse)}\n\n`);
+                res.write('data: [DONE]\n\n');
+                res.end();
+            }
+
+        } else {
+            // Handle non-streaming response
+            const anthropicResponse = await sendMessage(internalRequest, accountManager);
+            const openaiResponse = convertToOpenAI(anthropicResponse, model || internalRequest.model);
+            res.json(openaiResponse);
+        }
+
+    } catch (error) {
+        console.error('[API:OpenAI] Error:', error);
+
+        // Parse error for appropriate response
+        let statusCode = 500;
+        let errorType = 'api_error';
+        let errorMessage = error.message;
+
+        if (error.message.includes('401') || error.message.includes('UNAUTHENTICATED')) {
+            statusCode = 401;
+            errorType = 'authentication_error';
+            errorMessage = 'Authentication failed';
+        } else if (error.message.includes('429') || error.message.includes('RESOURCE_EXHAUSTED')) {
+            statusCode = 429;
+            errorType = 'rate_limit_error';
+            errorMessage = 'Rate limit exceeded. Please try again later.';
+        } else if (error.message.includes('INVALID_ARGUMENT')) {
+            statusCode = 400;
+            errorType = 'invalid_request_error';
+        }
+
+        // Check if headers have already been sent
+        if (res.headersSent) {
+            res.write(`data: ${JSON.stringify({ error: { message: errorMessage, type: errorType } })}\n\n`);
+            res.write('data: [DONE]\n\n');
+            res.end();
+        } else {
+            res.status(statusCode).json({
+                error: {
+                    message: errorMessage,
+                    type: errorType
                 }
             });
         }

@@ -38,8 +38,10 @@ export function convertContentToParts(content, isClaudeModel = false, isGeminiMo
     for (const block of content) {
         if (block.type === 'text') {
             // Skip empty text blocks - they cause API errors
-            if (block.text && block.text.trim()) {
-                parts.push({ text: block.text });
+            // Safely handle cases where text might not be a string
+            const textContent = typeof block.text === 'string' ? block.text : String(block.text || '');
+            if (textContent.trim()) {
+                parts.push({ text: textContent });
             }
         } else if (block.type === 'image') {
             // Handle image content
