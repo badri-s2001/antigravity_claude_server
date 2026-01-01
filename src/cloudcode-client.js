@@ -253,6 +253,17 @@ function parseResetTime(responseOrError, errorText = '') {
     return resetMs;
 }
 
+function buildModelOrProjectNotFoundError({ model, account, project, endpoint, errorText }) {
+    const error = new Error(`MODEL_OR_PROJECT_NOT_FOUND: model=${model} account=${account} project=${project} endpoint=${endpoint}`);
+    error.code = 'MODEL_OR_PROJECT_NOT_FOUND';
+    error.model = model;
+    error.account = account;
+    error.project = project;
+    error.endpoint = endpoint;
+    error.details = errorText;
+    return error;
+}
+
 /**
  * Build the wrapped request body for Cloud Code API
  */
@@ -401,6 +412,17 @@ export async function sendMessage(anthropicRequest, accountManager) {
                             if (!lastError?.is429 || (resetMs && (!lastError.resetMs || resetMs < lastError.resetMs))) {
                                 lastError = { is429: true, response, errorText, resetMs };
                             }
+                            continue;
+                        }
+
+                        if (response.status === 404) {
+                            lastError = buildModelOrProjectNotFoundError({
+                                model,
+                                account: account.email,
+                                project,
+                                endpoint,
+                                errorText
+                            });
                             continue;
                         }
 
@@ -673,6 +695,17 @@ export async function* sendMessageStream(anthropicRequest, accountManager) {
                             if (!lastError?.is429 || (resetMs && (!lastError.resetMs || resetMs < lastError.resetMs))) {
                                 lastError = { is429: true, response, errorText, resetMs };
                             }
+                            continue;
+                        }
+
+                        if (response.status === 404) {
+                            lastError = buildModelOrProjectNotFoundError({
+                                model,
+                                account: account.email,
+                                project,
+                                endpoint,
+                                errorText
+                            });
                             continue;
                         }
 
