@@ -106,7 +106,8 @@ src/
 
 **Multi-Account Load Balancing:**
 - Sticky account selection for prompt caching (stays on same account across turns)
-- Automatic switch only when rate-limited for > 2 minutes
+- Model-specific rate limiting via `account.modelRateLimits[modelId]`
+- Automatic switch only when rate-limited for > 2 minutes on the current model
 - Session ID derived from first user message hash for cache continuity
 - Account state persisted to `~/.config/antigravity-proxy/accounts.json`
 
@@ -147,6 +148,7 @@ src/
 **Utilities:** Shared helpers in `src/utils/helpers.js`:
 - `formatDuration(ms)` - Format milliseconds as "1h23m45s"
 - `sleep(ms)` - Promise-based delay
+- `isNetworkError(error)` - Check if error is a transient network error
 
 **Logger:** Structured logging via `src/utils/logger.js`:
 - `logger.info(msg)` - Standard info (blue)
