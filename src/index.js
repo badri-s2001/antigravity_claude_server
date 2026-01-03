@@ -30,9 +30,10 @@ app.listen(PORT, () => {
     // Clear console for a clean start
     console.clear();
 
-    const width = 62;
     const border = '║';
-    const align = (text) => text + ' '.repeat(Math.max(0, width - text.length));
+    // align for 2-space indent (60 chars), align4 for 4-space indent (58 chars)
+    const align = (text) => text + ' '.repeat(Math.max(0, 60 - text.length));
+    const align4 = (text) => text + ' '.repeat(Math.max(0, 58 - text.length));
     
     // Build Control section dynamically
     let controlSection = '║  Control:                                                    ║\n';
@@ -66,10 +67,10 @@ ${controlSection}
 ║    POST /refresh-token       - Force token refresh           ║
 ║                                                              ║
 ${border}  ${align(`Configuration:`)}${border}
-${border}    ${align(`Storage: ${CONFIG_DIR}`)}${border}
+${border}    ${align4(`Storage: ${CONFIG_DIR}`)}${border}
 ║                                                              ║
 ║  Usage with Claude Code:                                     ║
-${border}    ${align(`export ANTHROPIC_BASE_URL=http://localhost:${PORT}`)}${border}
+${border}    ${align4(`export ANTHROPIC_BASE_URL=http://localhost:${PORT}`)}${border}
 ║    export ANTHROPIC_API_KEY=dummy                            ║
 ║    claude                                                    ║
 ║                                                              ║
