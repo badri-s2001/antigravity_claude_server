@@ -1,0 +1,519 @@
+<div x-data="{ activeTab: 'ui' }" class="glass-panel rounded-xl border border-space-border flex flex-col h-[calc(100vh-140px)] overflow-hidden">
+    <!-- Header & Tabs -->
+    <div class="bg-space-900/50 border-b border-space-border px-8 pt-8 pb-0 shrink-0">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                <svg class="w-5 h-5 text-neon-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span x-text="$store.global.t('systemConfig')">System Configuration</span>
+            </h3>
+        </div>
+
+        <div class="flex gap-6">
+            <button @click="activeTab = 'ui'"
+                class="pb-3 border-b-2 transition-colors font-medium text-sm flex items-center gap-2"
+                :class="activeTab === 'ui' ? 'border-neon-purple text-white' : 'border-transparent text-gray-500 hover:text-gray-300'">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" /></svg>
+                <span x-text="$store.global.t('tabInterface')">Interface</span>
+            </button>
+            <button @click="activeTab = 'claude'"
+                class="pb-3 border-b-2 transition-colors font-medium text-sm flex items-center gap-2"
+                :class="activeTab === 'claude' ? 'border-neon-purple text-white' : 'border-transparent text-gray-500 hover:text-gray-300'">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                <span x-text="$store.global.t('tabClaude')">Claude CLI</span>
+            </button>
+            <button @click="activeTab = 'models'"
+                class="pb-3 border-b-2 transition-colors font-medium text-sm flex items-center gap-2"
+                :class="activeTab === 'models' ? 'border-neon-purple text-white' : 'border-transparent text-gray-500 hover:text-gray-300'">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+                <span x-text="$store.global.t('tabModels')">Models</span>
+            </button>
+            <button @click="activeTab = 'server'"
+                class="pb-3 border-b-2 transition-colors font-medium text-sm flex items-center gap-2"
+                :class="activeTab === 'server' ? 'border-neon-purple text-white' : 'border-transparent text-gray-500 hover:text-gray-300'">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" /></svg>
+                <span x-text="$store.global.t('tabServer')">Server Info</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Scrollable Content -->
+    <div class="p-8 overflow-y-auto flex-1 custom-scrollbar">
+
+        <!-- Tab 1: UI Preferences -->
+        <div x-show="activeTab === 'ui'" class="space-y-8 max-w-2xl animate-fade-in">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Language -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text text-gray-300" x-text="$store.global.t('language')">Language</span>
+                    </label>
+                    <div class="join w-full grid grid-cols-2">
+                        <button
+                            class="join-item btn btn-sm border-space-border bg-space-800 text-gray-400 hover:text-white hover:bg-space-700 hover:border-space-600 transition-all font-medium"
+                            :class="{'bg-neon-purple text-white border-neon-purple hover:bg-purple-600 hover:border-purple-500': $store.global.lang === 'en'}"
+                            @click="$store.global.setLang('en')">English</button>
+                        <button
+                            class="join-item btn btn-sm border-space-border bg-space-800 text-gray-400 hover:text-white hover:bg-space-700 hover:border-space-600 transition-all font-medium"
+                            :class="{'bg-neon-purple text-white border-neon-purple hover:bg-purple-600 hover:border-purple-500': $store.global.lang === 'zh'}"
+                            @click="$store.global.setLang('zh')">中文</button>
+                    </div>
+                </div>
+
+                <!-- Polling Interval -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text text-gray-300" x-text="$store.global.t('pollingInterval')">Polling
+                            Interval</span>
+                        <span class="label-text-alt font-mono text-neon-purple"
+                            x-text="$store.settings.refreshInterval + 's'"></span>
+                    </label>
+                    <input type="range" min="10" max="300" class="range range-xs range-primary"
+                        x-model="$store.settings.refreshInterval"
+                        @change="$store.settings.saveSettings(true)"
+                        style="--range-shdw: #a855f7">
+                    <div class="w-full flex justify-between text-xs px-2 mt-2 text-gray-600 font-mono">
+                        <span>10s</span>
+                        <span>300s</span>
+                    </div>
+                </div>
+
+                <!-- Log Buffer -->
+                <div class="form-control col-span-full">
+                    <label class="label">
+                        <span class="label-text text-gray-300" x-text="$store.global.t('logBufferSize')">Log Buffer Size</span>
+                        <span class="label-text-alt font-mono text-neon-purple"
+                            x-text="$store.settings.logLimit + ' lines'"></span>
+                    </label>
+                    <input type="range" min="500" max="5000" step="500" class="range range-xs range-secondary"
+                        x-model="$store.settings.logLimit"
+                        @change="$store.settings.saveSettings(true)"
+                        style="--range-shdw: #22c55e">
+                    <div class="w-full flex justify-between text-xs px-2 mt-2 text-gray-600 font-mono">
+                        <span>500</span>
+                        <span>5000</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="divider border-space-border/50"></div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div
+                    class="form-control bg-space-900/50 p-4 rounded-lg border transition-all duration-300 hover:border-space-border cursor-pointer group"
+                    :class="$store.settings.showExhausted ? 'border-neon-purple/50 bg-neon-purple/5 shadow-[0_0_15px_rgba(168,85,247,0.1)]' : 'border-space-border/50'"
+                    @click="$store.settings.showExhausted = !$store.settings.showExhausted; $store.settings.saveSettings(true)">
+                    <label class="label cursor-pointer pointer-events-none"> <!-- pointer-events-none to prevent double toggle -->
+                        <div class="flex flex-col gap-1">
+                            <span class="label-text font-medium transition-colors"
+                                :class="$store.settings.showExhausted ? 'text-neon-purple' : 'text-gray-300'"
+                                x-text="$store.global.t('showExhausted')">Show Exhausted Models</span>
+                            <span class="text-xs text-gray-500" x-text="$store.global.t('showExhaustedDesc')">Display models even if they have 0% remaining quota.</span>
+                        </div>
+                        <input type="checkbox" class="toggle toggle-primary" x-model="$store.settings.showExhausted">
+                    </label>
+                </div>
+
+                <div
+                    class="form-control bg-space-900/50 p-4 rounded-lg border transition-all duration-300 hover:border-space-border cursor-pointer group"
+                    :class="$store.settings.compact ? 'border-neon-green/50 bg-neon-green/5 shadow-[0_0_15px_rgba(34,197,94,0.1)]' : 'border-space-border/50'"
+                    @click="$store.settings.compact = !$store.settings.compact; $store.settings.saveSettings(true)">
+                    <label class="label cursor-pointer pointer-events-none">
+                        <div class="flex flex-col gap-1">
+                            <span class="label-text font-medium transition-colors"
+                                :class="$store.settings.compact ? 'text-neon-green' : 'text-gray-300'"
+                                x-text="$store.global.t('compactMode')">Compact Mode</span>
+                            <span class="text-xs text-gray-500" x-text="$store.global.t('compactModeDesc')">Reduce padding in tables for higher information density.</span>
+                        </div>
+                        <input type="checkbox" class="toggle toggle-secondary" x-model="$store.settings.compact">
+                    </label>
+                </div>
+            </div>
+
+            <!-- Save button removed (Auto-save enabled) -->
+        </div>
+
+        <!-- Tab 2: Claude CLI Configuration -->
+        <div x-show="activeTab === 'claude'" x-data="claudeConfig" class="space-y-6 max-w-3xl animate-fade-in">
+            <div class="alert bg-space-900/50 border-space-border text-sm shadow-none">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-info shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span class="text-gray-400">Settings below directly modify <code class="text-neon-cyan font-mono">~/.claude/settings.json</code>. Restart Claude CLI to apply.</span>
+            </div>
+
+            <!-- Base URL -->
+            <div class="card bg-space-900/30 border border-space-border/50 p-5">
+                <label class="label text-xs uppercase text-gray-500 font-semibold mb-2">Proxy Connection</label>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <div class="text-[11px] text-gray-400 mb-1 font-mono">ANTHROPIC_BASE_URL</div>
+                        <input type="text" x-model="config.env.ANTHROPIC_BASE_URL" placeholder="http://localhost:8080"
+                            class="input input-sm input-bordered bg-space-800/50 w-full font-mono text-sm border-space-border focus:border-neon-purple focus:bg-space-800 text-gray-200">
+                    </div>
+                    <div>
+                        <div class="text-[11px] text-gray-400 mb-1 font-mono">ANTHROPIC_AUTH_TOKEN</div>
+                         <input type="password" x-model="config.env.ANTHROPIC_AUTH_TOKEN" placeholder="any-string"
+                            class="input input-sm input-bordered bg-space-800/50 w-full font-mono text-sm border-space-border focus:border-neon-purple focus:bg-space-800 text-gray-200">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Models Selection -->
+            <div class="card bg-space-900/30 border border-space-border/50 p-5">
+                <label class="label text-xs uppercase text-gray-500 font-semibold mb-2">Model Selection</label>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <!-- Primary -->
+                    <div class="form-control">
+                        <label class="label pt-0 pb-1 text-[11px] text-gray-400 font-bold tracking-wider">Primary Model</label>
+                        <div class="relative w-full" x-data="{ open: false }">
+                            <input type="text" x-model="config.env.ANTHROPIC_MODEL"
+                                @focus="open = true"
+                                @click.away="open = false"
+                                class="input input-sm w-full font-mono text-xs bg-space-800/50 border-space-border text-white focus:bg-space-800 focus:border-neon-cyan pr-8 placeholder-gray-600"
+                                placeholder="Type to search or select...">
+                            <div class="absolute right-2 top-1.5 cursor-pointer text-gray-500 hover:text-white transition-colors" @click="open = !open; if(open) $el.previousElementSibling.focus()" @mousedown.prevent>▼</div>
+
+                            <ul x-show="open"
+                                x-transition:enter="transition ease-out duration-100"
+                                x-transition:enter-start="opacity-0 scale-95"
+                                x-transition:enter-end="opacity-100 scale-100"
+                                class="absolute left-0 right-0 top-full mt-1 menu p-2 shadow-2xl bg-space-900 border border-space-border rounded-lg max-h-60 overflow-y-auto z-[100] custom-scrollbar">
+                                <template x-for="modelId in $store.data.models.filter(m => m.toLowerCase().includes(config.env.ANTHROPIC_MODEL?.toLowerCase() || ''))" :key="modelId">
+                                    <li>
+                                        <a @mousedown.prevent="config.env.ANTHROPIC_MODEL = modelId; open = false"
+                                           class="font-mono text-xs py-2 hover:bg-space-800 hover:text-neon-cyan border-b border-space-border/30 last:border-0"
+                                           :class="config.env.ANTHROPIC_MODEL === modelId ? 'text-neon-cyan bg-space-800/50' : 'text-gray-300'">
+                                            <span x-text="modelId"></span>
+                                        </a>
+                                    </li>
+                                </template>
+                                <li x-show="$store.data.models.filter(m => m.toLowerCase().includes(config.env.ANTHROPIC_MODEL?.toLowerCase() || '')).length === 0">
+                                    <span class="text-xs text-gray-500 italic py-2">No matching models</span>
+                                </li>
+                            </ul>
+                        </div>
+                        <span class="text-[10px] text-gray-600 mt-1 font-mono">ANTHROPIC_MODEL</span>
+                    </div>
+
+                    <!-- Sub-agent -->
+                    <div class="form-control">
+                        <label class="label pt-0 pb-1 text-[11px] text-gray-400 font-bold tracking-wider">Sub-agent Model</label>
+                        <div class="relative w-full" x-data="{ open: false }">
+                            <input type="text" x-model="config.env.CLAUDE_CODE_SUBAGENT_MODEL"
+                                @focus="open = true"
+                                @click.away="open = false"
+                                class="input input-sm w-full font-mono text-xs bg-space-800/50 border-space-border text-white focus:bg-space-800 focus:border-neon-purple pr-8 placeholder-gray-600"
+                                placeholder="Type to search or select...">
+                            <div class="absolute right-2 top-1.5 cursor-pointer text-gray-500 hover:text-white transition-colors" @click="open = !open; if(open) $el.previousElementSibling.focus()" @mousedown.prevent>▼</div>
+
+                            <ul x-show="open"
+                                x-transition:enter="transition ease-out duration-100"
+                                x-transition:enter-start="opacity-0 scale-95"
+                                x-transition:enter-end="opacity-100 scale-100"
+                                class="absolute left-0 right-0 top-full mt-1 menu p-2 shadow-2xl bg-space-900 border border-space-border rounded-lg max-h-60 overflow-y-auto z-[100] custom-scrollbar">
+                                <template x-for="modelId in $store.data.models.filter(m => m.toLowerCase().includes(config.env.CLAUDE_CODE_SUBAGENT_MODEL?.toLowerCase() || ''))" :key="modelId">
+                                    <li>
+                                        <a @mousedown.prevent="config.env.CLAUDE_CODE_SUBAGENT_MODEL = modelId; open = false"
+                                           class="font-mono text-xs py-2 hover:bg-space-800 hover:text-neon-purple border-b border-space-border/30 last:border-0"
+                                           :class="config.env.CLAUDE_CODE_SUBAGENT_MODEL === modelId ? 'text-neon-purple bg-space-800/50' : 'text-gray-300'">
+                                            <span x-text="modelId"></span>
+                                        </a>
+                                    </li>
+                                </template>
+                                <li x-show="$store.data.models.filter(m => m.toLowerCase().includes(config.env.CLAUDE_CODE_SUBAGENT_MODEL?.toLowerCase() || '')).length === 0">
+                                    <span class="text-xs text-gray-500 italic py-2">No matching models</span>
+                                </li>
+                            </ul>
+                        </div>
+                        <span class="text-[10px] text-gray-600 mt-1 font-mono">CLAUDE_CODE_SUBAGENT_MODEL</span>
+                    </div>
+                </div>
+
+                <div class="divider text-xs font-mono text-gray-600 my-2">ALIAS OVERRIDES</div>
+
+                <!-- Overrides -->
+                <div class="space-y-4">
+                     <!-- Opus -->
+                     <div class="form-control">
+                        <label class="label pt-0 pb-1 text-[10px] text-gray-500 uppercase font-bold">Opus Alias</label>
+                        <div class="relative w-full" x-data="{ open: false }">
+                            <input type="text" x-model="config.env.ANTHROPIC_DEFAULT_OPUS_MODEL"
+                                @focus="open = true"
+                                @click.away="open = false"
+                                class="input input-sm w-full font-mono text-xs bg-space-800/50 border-space-border text-gray-300 focus:bg-space-800 focus:border-neon-cyan pr-8 placeholder-gray-600"
+                                placeholder="Search...">
+                            <div class="absolute right-2 top-1.5 cursor-pointer text-gray-500 hover:text-white transition-colors" @click="open = !open; if(open) $el.previousElementSibling.focus()" @mousedown.prevent>▼</div>
+                             <ul x-show="open"
+                                x-transition:enter="transition ease-out duration-100"
+                                x-transition:enter-start="opacity-0 scale-95"
+                                x-transition:enter-end="opacity-100 scale-100"
+                                class="absolute left-0 right-0 top-full mt-1 menu p-2 shadow-2xl bg-space-900 border border-space-border rounded-lg max-h-60 overflow-y-auto z-[100] custom-scrollbar">
+                                <template x-for="modelId in $store.data.models.filter(m => m.toLowerCase().includes(config.env.ANTHROPIC_DEFAULT_OPUS_MODEL?.toLowerCase() || ''))" :key="modelId">
+                                    <li>
+                                        <a @mousedown.prevent="config.env.ANTHROPIC_DEFAULT_OPUS_MODEL = modelId; open = false"
+                                           class="font-mono text-xs py-1 hover:bg-space-800 hover:text-white border-b border-space-border/30 last:border-0"
+                                           :class="config.env.ANTHROPIC_DEFAULT_OPUS_MODEL === modelId ? 'text-neon-cyan bg-space-800/50' : 'text-gray-300'">
+                                            <span x-text="modelId"></span>
+                                        </a>
+                                    </li>
+                                </template>
+                            </ul>
+                        </div>
+                    </div>
+                    <!-- Sonnet -->
+                     <div class="form-control">
+                        <label class="label pt-0 pb-1 text-[10px] text-gray-500 uppercase font-bold">Sonnet Alias</label>
+                        <div class="relative w-full" x-data="{ open: false }">
+                            <input type="text" x-model="config.env.ANTHROPIC_DEFAULT_SONNET_MODEL"
+                                @focus="open = true"
+                                @click.away="open = false"
+                                class="input input-sm w-full font-mono text-xs bg-space-800/50 border-space-border text-gray-300 focus:bg-space-800 focus:border-neon-cyan pr-8 placeholder-gray-600"
+                                placeholder="Search...">
+                            <div class="absolute right-2 top-1.5 cursor-pointer text-gray-500 hover:text-white transition-colors" @click="open = !open; if(open) $el.previousElementSibling.focus()" @mousedown.prevent>▼</div>
+                             <ul x-show="open"
+                                x-transition:enter="transition ease-out duration-100"
+                                x-transition:enter-start="opacity-0 scale-95"
+                                x-transition:enter-end="opacity-100 scale-100"
+                                class="absolute left-0 right-0 top-full mt-1 menu p-2 shadow-2xl bg-space-900 border border-space-border rounded-lg max-h-60 overflow-y-auto z-[100] custom-scrollbar">
+                                <template x-for="modelId in $store.data.models.filter(m => m.toLowerCase().includes(config.env.ANTHROPIC_DEFAULT_SONNET_MODEL?.toLowerCase() || ''))" :key="modelId">
+                                    <li>
+                                        <a @mousedown.prevent="config.env.ANTHROPIC_DEFAULT_SONNET_MODEL = modelId; open = false"
+                                           class="font-mono text-xs py-1 hover:bg-space-800 hover:text-white border-b border-space-border/30 last:border-0"
+                                           :class="config.env.ANTHROPIC_DEFAULT_SONNET_MODEL === modelId ? 'text-neon-cyan bg-space-800/50' : 'text-gray-300'">
+                                            <span x-text="modelId"></span>
+                                        </a>
+                                    </li>
+                                </template>
+                            </ul>
+                        </div>
+                    </div>
+                    <!-- Haiku -->
+                     <div class="form-control">
+                        <label class="label pt-0 pb-1 text-[10px] text-gray-500 uppercase font-bold">Haiku Alias</label>
+                         <div class="relative w-full" x-data="{ open: false }">
+                            <input type="text" x-model="config.env.ANTHROPIC_DEFAULT_HAIKU_MODEL"
+                                @focus="open = true"
+                                @click.away="open = false"
+                                class="input input-sm w-full font-mono text-xs bg-space-800/50 border-space-border text-gray-300 focus:bg-space-800 focus:border-neon-cyan pr-8 placeholder-gray-600"
+                                placeholder="Search...">
+                            <div class="absolute right-2 top-1.5 cursor-pointer text-gray-500 hover:text-white transition-colors" @click="open = !open; if(open) $el.previousElementSibling.focus()" @mousedown.prevent>▼</div>
+                             <ul x-show="open"
+                                x-transition:enter="transition ease-out duration-100"
+                                x-transition:enter-start="opacity-0 scale-95"
+                                x-transition:enter-end="opacity-100 scale-100"
+                                class="absolute left-0 right-0 top-full mt-1 menu p-2 shadow-2xl bg-space-900 border border-space-border rounded-lg max-h-60 overflow-y-auto z-[100] custom-scrollbar">
+                                <template x-for="modelId in $store.data.models.filter(m => m.toLowerCase().includes(config.env.ANTHROPIC_DEFAULT_HAIKU_MODEL?.toLowerCase() || ''))" :key="modelId">
+                                    <li>
+                                        <a @mousedown.prevent="config.env.ANTHROPIC_DEFAULT_HAIKU_MODEL = modelId; open = false"
+                                           class="font-mono text-xs py-1 hover:bg-space-800 hover:text-white border-b border-space-border/30 last:border-0"
+                                           :class="config.env.ANTHROPIC_DEFAULT_HAIKU_MODEL === modelId ? 'text-neon-cyan bg-space-800/50' : 'text-gray-300'">
+                                            <span x-text="modelId"></span>
+                                        </a>
+                                    </li>
+                                </template>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-2">
+                <button class="btn btn-sm bg-neon-purple hover:bg-purple-600 border-none text-white px-6 gap-2"
+                    @click="saveClaudeConfig" :disabled="loading">
+                    <svg x-show="!loading" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
+                    <span x-show="!loading">Write to Config</span>
+                    <span x-show="loading" class="loading loading-spinner loading-xs"></span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Tab 2.5: Models Configuration -->
+        <div x-show="activeTab === 'models'" class="space-y-6 max-w-3xl animate-fade-in">
+            <div class="flex items-center justify-between">
+                <div class="text-sm text-gray-400">Manage visibility and ordering of models in the dashboard.</div>
+                <div class="form-control">
+                    <label class="label cursor-pointer gap-2">
+                        <span class="label-text text-xs text-gray-500">Show Hidden Models</span>
+                        <input type="checkbox" class="toggle toggle-xs toggle-primary" x-model="$store.settings.showHiddenModels" @change="$store.settings.saveSettings(true)">
+                    </label>
+                </div>
+            </div>
+
+            <!-- Models List -->
+            <div class="bg-space-900/30 border border-space-border/50 rounded-lg overflow-hidden">
+                <table class="table table-sm w-full">
+                    <thead class="bg-space-900/50 text-gray-500 font-mono text-xs uppercase tracking-wider border-b border-space-border/50">
+                        <tr>
+                            <th class="pl-4">Model ID</th>
+                            <th>Alias</th>
+                            <th class="text-right pr-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-space-border/30">
+                        <template x-for="modelId in $store.data.models" :key="modelId">
+                            <tr class="hover:bg-white/5 transition-colors group"
+                                x-data="{
+                                    isEditing: false,
+                                    newAlias: '',
+                                    // Use getters for reactivity - accessing store directly ensures updates are reflected immediately
+                                    get config() { return $store.data.modelConfig[modelId] || {} },
+                                    get isPinned() { return !!this.config.pinned },
+                                    get isHidden() {
+                                        if (this.config.hidden !== undefined) return this.config.hidden;
+                                        // Smart default: unknown models are hidden by default
+                                        const family = $store.data.getModelFamily(modelId);
+                                        return (family === 'other' || family === 'unknown');
+                                    }
+                                }"
+                                x-init="newAlias = config.alias || ''"
+                            >
+                                <td class="pl-4 font-mono text-xs text-gray-300" x-text="modelId"></td>
+                                <td>
+                                    <div x-show="!isEditing" class="flex items-center gap-2 group-hover:text-white transition-colors cursor-pointer" @click="isEditing = true; newAlias = config.alias || ''">
+                                        <span x-text="config.alias || '-'" :class="{'text-gray-600 italic': !config.alias}"></span>
+                                        <svg class="w-3 h-3 text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                    </div>
+                                    <div x-show="isEditing" class="flex items-center gap-1">
+                                        <input type="text" x-model="newAlias"
+                                            class="input input-xs bg-space-800 border-space-border text-white focus:outline-none focus:border-neon-purple w-32"
+                                            @keydown.enter="
+                                                $store.data.modelConfig[modelId] = { ...config, alias: newAlias };
+                                                fetch('/api/models/config', {
+                                                    method: 'POST',
+                                                    headers: {'Content-Type': 'application/json'},
+                                                    body: JSON.stringify({ modelId, config: { alias: newAlias } })
+                                                });
+                                                isEditing = false;
+                                                $store.data.computeQuotaRows();
+                                            "
+                                            @keydown.escape="isEditing = false"
+                                        >
+                                        <button class="btn btn-xs btn-ghost btn-square text-green-500" @click="
+                                            $store.data.modelConfig[modelId] = { ...config, alias: newAlias };
+                                            fetch('/api/models/config', {
+                                                method: 'POST',
+                                                headers: {'Content-Type': 'application/json'},
+                                                body: JSON.stringify({ modelId, config: { alias: newAlias } })
+                                            });
+                                            isEditing = false;
+                                            $store.data.computeQuotaRows();
+                                        "><svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg></button>
+                                        <button class="btn btn-xs btn-ghost btn-square text-gray-500" @click="isEditing = false"><svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
+                                    </div>
+                                </td>
+                                <td class="text-right pr-4">
+                                    <div class="flex items-center justify-end gap-2">
+                                        <!-- Pin Toggle -->
+                                        <button class="btn btn-xs btn-circle transition-colors"
+                                            :class="isPinned ? 'bg-neon-purple/20 text-neon-purple border-neon-purple/50 hover:bg-neon-purple/30' : 'btn-ghost text-gray-600 hover:text-gray-300'"
+                                            @click="
+                                                const newVal = !isPinned;
+                                                // Optimistic update
+                                                $store.data.modelConfig[modelId] = { ...config, pinned: newVal };
+                                                fetch('/api/models/config', {
+                                                    method: 'POST',
+                                                    headers: {'Content-Type': 'application/json'},
+                                                    body: JSON.stringify({ modelId, config: { pinned: newVal } })
+                                                });
+                                                $store.data.computeQuotaRows();
+                                            "
+                                            title="Pin to top">
+                                            <!-- Solid Icon when Pinned -->
+                                            <svg x-show="isPinned" xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                                                <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
+                                            </svg>
+                                            <!-- Outline Icon when Unpinned -->
+                                            <svg x-show="!isPinned" xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                                            </svg>
+                                        </button>
+
+                                        <!-- Hide Toggle -->
+                                        <button class="btn btn-xs btn-circle transition-colors"
+                                            :class="isHidden ? 'bg-red-500/20 text-red-400 border-red-500/50 hover:bg-red-500/30' : 'btn-ghost text-gray-400 hover:text-white'"
+                                            @click="
+                                                const currentHidden = isHidden;
+                                                const newVal = !currentHidden;
+                                                // Optimistic update
+                                                $store.data.modelConfig[modelId] = { ...config, hidden: newVal };
+                                                fetch('/api/models/config', {
+                                                    method: 'POST',
+                                                    headers: {'Content-Type': 'application/json'},
+                                                    body: JSON.stringify({ modelId, config: { hidden: newVal } })
+                                                });
+                                                $store.data.computeQuotaRows();
+                                            "
+                                            title="Toggle Visibility">
+                                            <svg x-show="!isHidden" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                            </svg>
+                                            <svg x-show="isHidden" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </template>
+                        <!-- Empty State -->
+                         <tr x-show="!$store.data.models.length">
+                            <td colspan="3" class="text-center py-8 text-gray-600 text-xs font-mono">
+                                NO MODELS DETECTED
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Tab 3: Server Info -->
+        <div x-show="activeTab === 'server'" class="space-y-6 max-w-2xl animate-fade-in">
+             <div class="grid grid-cols-2 gap-4 bg-space-900/30 p-6 rounded-lg border border-space-border/50">
+                <div>
+                    <div class="text-xs text-gray-500 mb-1">Port</div>
+                    <div class="text-sm font-mono text-neon-cyan" x-text="$store.settings.port || '-'"></div>
+                </div>
+                <div>
+                    <div class="text-xs text-gray-500 mb-1">UI Version</div>
+                    <div class="text-sm font-mono text-neon-cyan" x-text="$store.global.version"></div>
+                </div>
+                <div>
+                    <div class="text-xs text-gray-500 mb-1">Debug Mode</div>
+                    <div class="text-sm text-gray-300">Enabled (See Logs)</div>
+                </div>
+                <div>
+                    <div class="text-xs text-gray-500 mb-1">Environment</div>
+                    <div class="text-sm font-mono text-gray-300">Production</div>
+                </div>
+            </div>
+
+            <div class="alert bg-blue-500/10 border-blue-500/20 text-xs">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-blue-400 shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <div class="text-blue-200">
+                    Server settings are read-only. Modify <code class="font-mono bg-blue-500/20 px-1 rounded">config.json</code> or <code class="font-mono bg-blue-500/20 px-1 rounded">.env</code> and restart the server to change.
+                </div>
+            </div>
+
+            <!-- Manual Reload -->
+            <div class="pt-6 border-t border-space-border/30">
+                <h4 class="text-sm font-bold text-white mb-4">Danger Zone / Advanced</h4>
+                <div class="flex items-center justify-between p-4 border border-space-border/50 rounded-lg bg-space-900/20">
+                    <div>
+                        <div class="font-medium text-gray-300 text-sm">Reload Account Config</div>
+                        <div class="text-xs text-gray-500">Force reload accounts.json from disk</div>
+                    </div>
+                    <button class="btn btn-sm btn-outline border-space-border hover:bg-white hover:text-black hover:border-white text-gray-400"
+                        @click="Alpine.store('global').showToast('Reloading...', 'info'); fetch('/api/accounts/reload', {method: 'POST'}).then(() => Alpine.store('global').showToast('Reloaded', 'success'))">
+                        Reload
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

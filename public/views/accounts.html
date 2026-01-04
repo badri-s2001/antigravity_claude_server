@@ -1,0 +1,80 @@
+<div x-data="accountManager" class="max-w-4xl mx-auto space-y-6">
+    <div class="flex justify-between items-center">
+        <div>
+            <h2 class="text-2xl font-bold text-white tracking-tight" x-text="$store.global.t('accessCredentials')">
+                Access
+                Credentials</h2>
+            <p class="text-gray-500 text-sm" x-text="$store.global.t('manageTokens')">Manage OAuth tokens
+                and session
+                states</p>
+        </div>
+        <button class="btn btn-sm bg-neon-purple hover:bg-purple-600 text-white border-none gap-2"
+            onclick="document.getElementById('add_account_modal').showModal()">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            <span x-text="$store.global.t('addNode')">Add Node</span>
+        </button>
+    </div>
+
+    <div class="glass-panel rounded-xl overflow-hidden">
+        <table class="table w-full">
+            <thead class="bg-space-900/50 text-gray-500 font-mono text-xs uppercase border-b border-space-border">
+                <tr>
+                    <th class="pl-6 w-24" x-text="$store.global.t('enabled')">Enabled</th>
+                    <th x-text="$store.global.t('identity')">Identity (Email)</th>
+                    <th x-text="$store.global.t('projectId')">Project ID</th>
+                    <th class="w-32" x-text="$store.global.t('health')">Health</th>
+                    <th class="text-right pr-6" x-text="$store.global.t('operations')">Operations</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-space-border/50">
+                <template x-for="acc in $store.data.accounts" :key="acc.email">
+                    <tr class="hover:bg-white/5 transition-colors">
+                        <td class="pl-6">
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" class="sr-only peer" :checked="acc.enabled !== false"
+                                    @change="toggleAccount(acc.email, $el.checked)">
+                                <div
+                                    class="w-9 h-5 bg-space-800 border border-space-border peer-focus:outline-none peer-focus:ring-1 peer-focus:ring-neon-purple rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-400 after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-neon-green/20 peer-checked:border-neon-green peer-checked:after:bg-neon-green peer-checked:after:shadow-[0_0_8px_rgba(34,197,94,0.8)]">
+                                </div>
+                            </label>
+                        </td>
+                        <td class="font-medium text-gray-200" x-text="acc.email"></td>
+                        <td class="font-mono text-xs text-gray-400" x-text="acc.projectId || '-'"></td>
+                        <td>
+                            <span class="badge badge-sm border-0 font-mono"
+                                :class="acc.status === 'ok' ? 'bg-neon-green/10 text-neon-green' : 'bg-red-500/10 text-red-500'"
+                                x-text="acc.status.toUpperCase()"></span>
+                        </td>
+                        <td class="text-right pr-6">
+                            <div class="flex justify-end gap-1">
+                                <!-- Fix Button -->
+                                <button x-show="acc.status === 'invalid'"
+                                    class="btn btn-xs bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20 border-none mr-1 px-2 font-mono"
+                                    @click="fixAccount(acc.email)">
+                                    FIX
+                                </button>
+                                <button class="btn btn-xs btn-square btn-ghost text-gray-400 hover:text-white"
+                                    @click="refreshAccount(acc.email)" title="Refresh Token">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                    </svg>
+                                </button>
+                                <button
+                                    class="btn btn-xs btn-square btn-ghost text-red-400 hover:text-red-500 hover:bg-red-500/10"
+                                    @click="deleteAccount(acc.email)" :title="$store.global.t('delete')">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </template>
+            </tbody>
+        </table>
+    </div>
+</div>

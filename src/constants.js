@@ -5,6 +5,7 @@
 
 import { homedir, platform, arch } from 'os';
 import { join } from 'path';
+import { config } from './config.js';
 
 /**
  * Get the Antigravity database path based on the current platform.
@@ -59,13 +60,14 @@ export const ANTIGRAVITY_HEADERS = {
 // Default project ID if none can be discovered
 export const DEFAULT_PROJECT_ID = 'rising-fact-p41fc';
 
-export const TOKEN_REFRESH_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
-export const REQUEST_BODY_LIMIT = '50mb';
+// Configurable constants - values from config.json take precedence
+export const TOKEN_REFRESH_INTERVAL_MS = config?.tokenCacheTtlMs || (5 * 60 * 1000); // From config or 5 minutes
+export const REQUEST_BODY_LIMIT = config?.requestBodyLimit || '50mb';
 export const ANTIGRAVITY_AUTH_PORT = 9092;
-export const DEFAULT_PORT = 8080;
+export const DEFAULT_PORT = config?.port || 8080;
 
 // Multi-account configuration
-export const ACCOUNT_CONFIG_PATH = join(
+export const ACCOUNT_CONFIG_PATH = config?.accountConfigPath || join(
     homedir(),
     '.config/antigravity-proxy/accounts.json'
 );
@@ -74,12 +76,12 @@ export const ACCOUNT_CONFIG_PATH = join(
 // Uses platform-specific path detection
 export const ANTIGRAVITY_DB_PATH = getAntigravityDbPath();
 
-export const DEFAULT_COOLDOWN_MS = 60 * 1000; // 1 minute default cooldown
-export const MAX_RETRIES = 5; // Max retry attempts across accounts
-export const MAX_ACCOUNTS = 10; // Maximum number of accounts allowed
+export const DEFAULT_COOLDOWN_MS = config?.defaultCooldownMs || (60 * 1000); // From config or 1 minute
+export const MAX_RETRIES = config?.maxRetries || 5; // From config or 5
+export const MAX_ACCOUNTS = config?.maxAccounts || 10; // From config or 10
 
 // Rate limit wait thresholds
-export const MAX_WAIT_BEFORE_ERROR_MS = 120000; // 2 minutes - throw error if wait exceeds this
+export const MAX_WAIT_BEFORE_ERROR_MS = config?.maxWaitBeforeErrorMs || 120000; // From config or 2 minutes
 
 // Thinking model constants
 export const MIN_SIGNATURE_LENGTH = 50; // Minimum valid thinking signature length

@@ -1,0 +1,85 @@
+<div x-data="logsViewer" class="h-full flex flex-col glass-panel rounded-xl overflow-hidden border-space-border">
+    <!-- Toolbar -->
+    <div class="bg-space-900 flex flex-wrap gap-y-2 justify-between items-center p-2 px-4 border-b border-space-border select-none min-h-[48px]">
+
+        <!-- Left: Decor & Title -->
+        <div class="flex items-center gap-3 shrink-0">
+            <div class="flex gap-2">
+                <div class="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/50"></div>
+                <div class="w-3 h-3 rounded-full bg-yellow-500/20 border border-yellow-500/50"></div>
+                <div class="w-3 h-3 rounded-full bg-green-500/20 border border-green-500/50"></div>
+            </div>
+            <span class="text-xs font-mono text-gray-500 hidden sm:inline-block">~/logs</span>
+        </div>
+
+        <!-- Center: Search & Filters -->
+        <div class="flex-1 flex items-center justify-center gap-4 px-4 min-w-0">
+            <!-- Search -->
+            <div class="relative w-full max-w-xs group">
+                <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                    <svg class="h-3 w-3 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div>
+                <input type="text" x-model="searchQuery" placeholder="grep logs..."
+                    class="w-full h-7 bg-space-950 border border-space-border rounded text-xs font-mono pl-7 pr-2 focus:border-neon-purple focus:outline-none transition-colors placeholder-gray-700 text-gray-300">
+            </div>
+
+            <!-- Filters -->
+            <div class="hidden md:flex gap-3 text-[10px] font-mono font-bold uppercase select-none">
+                 <label class="flex items-center gap-1.5 cursor-pointer text-blue-400 opacity-50 hover:opacity-100 transition-opacity" :class="{'opacity-100': filters.INFO}">
+                     <input type="checkbox" class="checkbox checkbox-xs checkbox-info rounded-[2px] w-3 h-3 border-blue-400/50" x-model="filters.INFO"> INFO
+                 </label>
+                 <label class="flex items-center gap-1.5 cursor-pointer text-neon-green opacity-50 hover:opacity-100 transition-opacity" :class="{'opacity-100': filters.SUCCESS}">
+                     <input type="checkbox" class="checkbox checkbox-xs checkbox-success rounded-[2px] w-3 h-3 border-neon-green/50" x-model="filters.SUCCESS"> SUCCESS
+                 </label>
+                 <label class="flex items-center gap-1.5 cursor-pointer text-yellow-400 opacity-50 hover:opacity-100 transition-opacity" :class="{'opacity-100': filters.WARN}">
+                     <input type="checkbox" class="checkbox checkbox-xs checkbox-warning rounded-[2px] w-3 h-3 border-yellow-400/50" x-model="filters.WARN"> WARN
+                 </label>
+                 <label class="flex items-center gap-1.5 cursor-pointer text-red-500 opacity-50 hover:opacity-100 transition-opacity" :class="{'opacity-100': filters.ERROR}">
+                     <input type="checkbox" class="checkbox checkbox-xs checkbox-error rounded-[2px] w-3 h-3 border-red-500/50" x-model="filters.ERROR"> ERR
+                 </label>
+            </div>
+        </div>
+
+        <!-- Right: Controls -->
+        <div class="flex items-center gap-4 shrink-0">
+            <div class="text-[10px] font-mono text-gray-600 hidden lg:block">
+                <span x-text="filteredLogs.length"></span>/<span x-text="logs.length"></span>
+            </div>
+            <label class="cursor-pointer flex items-center gap-2" title="Auto-scroll to bottom">
+                <span class="text-[10px] font-mono text-gray-500 uppercase hidden sm:inline-block"
+                    x-text="$store.global.t('autoScroll')">Auto-Scroll</span>
+                <input type="checkbox" class="toggle toggle-xs toggle-success" x-model="isAutoScroll">
+            </label>
+            <button class="btn btn-xs btn-ghost btn-square text-gray-400 hover:text-white" @click="clearLogs" :title="$store.global.t('clearLogs')">
+                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Log Content -->
+    <div id="logs-container" class="flex-1 overflow-auto p-4 font-mono text-xs space-y-0.5 bg-[#050505]">
+        <template x-for="(log, idx) in filteredLogs" :key="idx">
+            <div class="hover:bg-white/5 rounded px-2 py-0.5 -mx-2 break-words leading-tight flex gap-3 group">
+                <span class="text-gray-600 w-16 shrink-0 select-none group-hover:text-gray-500"
+                    x-text="new Date(log.timestamp).toLocaleTimeString([], {hour12:false})"></span>
+                <span class="font-bold w-12 shrink-0 select-none" :class="{
+                        'text-blue-400': log.level === 'INFO',
+                        'text-yellow-400': log.level === 'WARN',
+                        'text-red-500': log.level === 'ERROR',
+                        'text-neon-green': log.level === 'SUCCESS',
+                        'text-purple-400': log.level === 'DEBUG'
+                      }" x-text="log.level"></span>
+                <span class="text-gray-300 break-all" x-html="log.message.replace(/\n/g, '<br>')"></span>
+            </div>
+        </template>
+        <!-- Blinking Cursor -->
+        <div class="h-4 w-2 bg-gray-500 animate-pulse mt-1 inline-block" x-show="filteredLogs.length === logs.length && !searchQuery"></div>
+        <div x-show="filteredLogs.length === 0 && logs.length > 0" class="text-gray-600 italic mt-4 text-center">
+            No logs match filter
+        </div>
+    </div>
+</div>

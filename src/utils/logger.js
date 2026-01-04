@@ -1,15 +1,18 @@
 /**
  * Logger Utility
- * 
+ *
  * Provides structured logging with colors and debug support.
  * Simple ANSI codes used to avoid dependencies.
  */
+
+import { EventEmitter } from 'events';
+import util from 'util';
 
 const COLORS = {
     RESET: '\x1b[0m',
     BRIGHT: '\x1b[1m',
     DIM: '\x1b[2m',
-    
+
     RED: '\x1b[31m',
     GREEN: '\x1b[32m',
     YELLOW: '\x1b[33m',
@@ -20,14 +23,17 @@ const COLORS = {
     GRAY: '\x1b[90m'
 };
 
-class Logger {
+class Logger extends EventEmitter {
     constructor() {
+        super();
         this.isDebugEnabled = false;
+        this.history = [];
+        this.maxHistory = 1000;
     }
 
     /**
      * Set debug mode
-     * @param {boolean} enabled 
+     * @param {boolean} enabled
      */
     setDebug(enabled) {
         this.isDebugEnabled = !!enabled;
@@ -41,18 +47,43 @@ class Logger {
     }
 
     /**
+     * Get log history
+     */
+    getHistory() {
+        return this.history;
+    }
+
+    /**
      * Format and print a log message
-     * @param {string} level 
-     * @param {string} color 
-     * @param {string} message 
-     * @param  {...any} args 
+     * @param {string} level
+     * @param {string} color
+     * @param {string} message
+     * @param  {...any} args
      */
     print(level, color, message, ...args) {
         // Format: [TIMESTAMP] [LEVEL] Message
-        const timestamp = `${COLORS.GRAY}[${this.getTimestamp()}]${COLORS.RESET}`;
+        const timestampStr = this.getTimestamp();
+        const timestamp = `${COLORS.GRAY}[${timestampStr}]${COLORS.RESET}`;
         const levelTag = `${color}[${level}]${COLORS.RESET}`;
-        
-        console.log(`${timestamp} ${levelTag} ${message}`, ...args);
+
+        // Format the message with args similar to console.log
+        const formattedMessage = util.format(message, ...args);
+
+        console.log(`${timestamp} ${levelTag} ${formattedMessage}`);
+
+        // Store structured log
+        const logEntry = {
+            timestamp: timestampStr,
+            level,
+            message: formattedMessage
+        };
+
+        this.history.push(logEntry);
+        if (this.history.length > this.maxHistory) {
+            this.history.shift();
+        }
+
+        this.emit('log', logEntry);
     }
 
     /**
@@ -98,7 +129,7 @@ class Logger {
     log(message, ...args) {
         console.log(message, ...args);
     }
-    
+
     /**
      * Print a section header
      */

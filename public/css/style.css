@@ -1,0 +1,92 @@
+[x-cloak] {
+    display: none !important;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #3f3f46;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #52525b;
+}
+
+/* Animations */
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.4s ease-out forwards;
+}
+
+/* Utility */
+.glass-panel {
+    background: rgba(23, 23, 23, 0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.nav-item.active {
+    background: linear-gradient(90deg, rgba(168, 85, 247, 0.15) 0%, transparent 100%);
+    border-left: 3px solid #a855f7;
+    color: #fff;
+}
+
+.nav-item {
+    border-left: 3px solid transparent;
+    transition: all 0.2s;
+}
+
+.progress-gradient-success::-webkit-progress-value {
+    background-image: linear-gradient(to right, #22c55e, #4ade80);
+}
+
+.progress-gradient-warning::-webkit-progress-value {
+    background-image: linear-gradient(to right, #eab308, #facc15);
+}
+
+.progress-gradient-error::-webkit-progress-value {
+    background-image: linear-gradient(to right, #dc2626, #f87171);
+}
+
+/* Dashboard Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+}
+
+/* Tooltip Customization */
+.tooltip:before {
+    background-color: #171717 !important; /* space-800 */
+    border: 1px solid #27272a; /* space-border */
+    color: #e5e7eb !important;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+}
+
+.tooltip-left:before {
+    margin-right: 0.5rem;
+}

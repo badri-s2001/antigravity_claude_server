@@ -1,0 +1,52 @@
+{
+  "_comment": "Antigravity Claude Proxy Configuration",
+  "_instructions": [
+    "HOW TO USE THIS FILE:",
+    "1. Copy to your HOME directory: ~/.config/antigravity-proxy/config.json",
+    "   - Windows: C:\\Users\\<username>\\.config\\antigravity-proxy\\config.json",
+    "   - macOS/Linux: ~/.config/antigravity-proxy/config.json",
+    "2. Or copy to project root as 'config.json' (fallback if home config not found)",
+    "",
+    "NOTE: Environment variables (e.g., WEBUI_PASSWORD) take precedence over file config",
+    "Restart server after making changes"
+  ],
+
+  "webuiPassword": "",
+  "_webuiPassword_comment": "Optional password to protect WebUI. Can also use WEBUI_PASSWORD env var.",
+
+  "port": 8080,
+  "debug": false,
+  "logLevel": "info",
+
+  "maxRetries": 5,
+  "retryBaseMs": 1000,
+  "retryMaxMs": 30000,
+
+  "defaultCooldownMs": 60000,
+  "maxWaitBeforeErrorMs": 120000,
+
+  "tokenCacheTtlMs": 300000,
+  "persistTokenCache": false,
+
+  "requestTimeoutMs": 300000,
+  "maxAccounts": 10,
+
+  "_profiles": {
+    "development": {
+      "debug": true,
+      "logLevel": "debug",
+      "maxRetries": 3
+    },
+    "production": {
+      "debug": false,
+      "logLevel": "info",
+      "maxRetries": 5,
+      "persistTokenCache": true
+    },
+    "high-performance": {
+      "maxRetries": 10,
+      "retryMaxMs": 60000,
+      "tokenCacheTtlMs": 600000
+    }
+  }
+}

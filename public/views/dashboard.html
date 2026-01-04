@@ -1,0 +1,221 @@
+<div x-data="dashboard" class="space-y-6 animate-fade-in">
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div
+            class="stat bg-space-900/40 border border-space-border/30 rounded-lg p-6 hover:border-space-border/60 transition-colors group">
+            <div class="stat-figure text-neon-cyan group-hover:scale-110 transition-transform">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    class="inline-block w-8 h-8 stroke-current">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0z">
+                    </path>
+                </svg>
+            </div>
+            <div class="stat-title text-gray-500 font-mono text-xs uppercase tracking-wider"
+                x-text="$store.global.t('totalAccounts')"></div>
+            <div class="stat-value text-white font-mono text-3xl" x-text="stats.total"></div>
+            <div class="stat-desc text-gray-600 text-[10px] mt-1">Registered Nodes</div>
+        </div>
+
+        <div
+            class="stat bg-space-900/40 border border-space-border/30 rounded-lg p-6 hover:border-space-border/60 transition-colors group">
+            <div class="stat-figure text-neon-green group-hover:scale-110 transition-transform">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    class="inline-block w-8 h-8 stroke-current">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <div class="stat-title text-gray-500 font-mono text-xs uppercase tracking-wider"
+                x-text="$store.global.t('active')"></div>
+            <div class="stat-value text-white font-mono text-3xl" x-text="stats.active"></div>
+            <div class="stat-desc text-neon-green/60 text-[10px] mt-1" x-text="$store.global.t('operational')"></div>
+        </div>
+
+        <div
+            class="stat bg-space-900/40 border border-space-border/30 rounded-lg p-6 hover:border-space-border/60 transition-colors group">
+            <div class="stat-figure text-red-500 group-hover:scale-110 transition-transform">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    class="inline-block w-8 h-8 stroke-current">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <div class="stat-title text-gray-500 font-mono text-xs uppercase tracking-wider"
+                x-text="$store.global.t('rateLimited')"></div>
+            <div class="stat-value text-white font-mono text-3xl" x-text="stats.limited"></div>
+            <div class="stat-desc text-red-500/60 text-[10px] mt-1" x-text="$store.global.t('cooldown')"></div>
+        </div>
+
+        <!-- Global Quota Chart -->
+        <div
+            class="stat bg-space-900/40 border border-space-border/30 rounded-lg p-4 col-span-1 md:col-start-4 md:row-start-1 h-full flex items-center justify-between gap-4 overflow-hidden relative group hover:border-space-border/60 transition-colors">
+            <!-- Chart Container -->
+            <div class="h-20 w-20 relative flex-shrink-0">
+                <canvas id="quotaChart"></canvas>
+                <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div class="text-[10px] font-bold text-white font-mono" x-text="stats.overallHealth + '%'">%</div>
+                </div>
+            </div>
+
+            <!-- Legend / Info -->
+            <div class="flex flex-col justify-center gap-2 flex-grow min-w-0 z-10">
+                <div class="flex items-center justify-between">
+                     <span class="text-[10px] text-gray-500 uppercase tracking-wider font-mono">Global Quota</span>
+                     <!-- <span class="text-xs font-bold text-neon-purple" x-text="stats.overallHealth + '%'"></span> -->
+                </div>
+
+                <!-- Custom Legend -->
+                <div class="space-y-1">
+                    <div class="flex items-center justify-between text-[10px] text-gray-400">
+                        <div class="flex items-center gap-1.5">
+                            <div class="w-1.5 h-1.5 rounded-full bg-neon-purple shadow-[0_0_4px_rgba(168,85,247,0.4)]"></div>
+                            <span>Claude</span>
+                        </div>
+                        <!-- <span class="font-mono text-gray-600">--</span> -->
+                    </div>
+                    <div class="flex items-center justify-between text-[10px] text-gray-400">
+                        <div class="flex items-center gap-1.5">
+                            <div class="w-1.5 h-1.5 rounded-full bg-neon-green shadow-[0_0_4px_rgba(34,197,94,0.4)]"></div>
+                            <span>Gemini</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Decorative Glow -->
+            <div class="absolute -right-6 -top-6 w-24 h-24 bg-neon-purple/5 rounded-full blur-2xl pointer-events-none"></div>
+        </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="flex items-center justify-between gap-4 glass-panel p-2 rounded-lg h-16">
+        <div class="flex items-center gap-4 h-full">
+            <!-- Custom Select -->
+            <div class="relative w-64 h-10">
+                <select
+                    class="appearance-none w-full h-full bg-space-800 border border-space-border text-gray-300 rounded-lg pl-4 pr-10 focus:outline-none focus:border-neon-purple focus:ring-1 focus:ring-neon-purple transition-all truncate text-sm"
+                    x-model="$store.data.filters.account" @change="$store.data.computeQuotaRows()">
+                    <option value="all" x-text="$store.global.t('allAccounts')">All Accounts</option>
+                    <template x-for="acc in $store.data.accounts" :key="acc.email">
+                        <option :value="acc.email" x-text="acc.email.split('@')[0]"></option>
+                    </template>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Filter Buttons -->
+            <div class="join h-10">
+                <button
+                    class="join-item btn btn-sm h-full px-6 border-space-border bg-space-800 text-gray-400 hover:text-white hover:bg-space-700 hover:border-space-600 transition-all font-medium text-xs tracking-wide"
+                    :class="{'bg-neon-purple text-white border-neon-purple hover:bg-purple-600 hover:border-purple-500': $store.data.filters.family === 'all'}"
+                    @click="$store.data.filters.family = 'all'; $store.data.computeQuotaRows()">ALL</button>
+                <button
+                    class="join-item btn btn-sm h-full px-6 border-space-border bg-space-800 text-gray-400 hover:text-white hover:bg-space-700 hover:border-space-600 transition-all font-medium text-xs tracking-wide"
+                    :class="{'bg-neon-purple text-white border-neon-purple hover:bg-purple-600 hover:border-purple-500': $store.data.filters.family === 'claude'}"
+                    @click="$store.data.filters.family = 'claude'; $store.data.computeQuotaRows()">CLAUDE</button>
+                <button
+                    class="join-item btn btn-sm h-full px-6 border-space-border bg-space-800 text-gray-400 hover:text-white hover:bg-space-700 hover:border-space-600 transition-all font-medium text-xs tracking-wide"
+                    :class="{'bg-neon-purple text-white border-neon-purple hover:bg-purple-600 hover:border-purple-500': $store.data.filters.family === 'gemini'}"
+                    @click="$store.data.filters.family = 'gemini'; $store.data.computeQuotaRows()">GEMINI</button>
+            </div>
+        </div>
+
+        <!-- Search -->
+        <div class="relative w-72 h-10">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+            </div>
+            <input type="text" :placeholder="$store.global.t('searchPlaceholder')"
+                class="w-full h-full bg-space-800 border border-space-border text-gray-300 rounded-lg pl-10 pr-4 focus:outline-none focus:border-neon-purple focus:ring-1 focus:ring-neon-purple transition-all text-sm placeholder-gray-600"
+                x-model.debounce="$store.data.filters.search" @input="$store.data.computeQuotaRows()">
+        </div>
+    </div>
+
+    <!-- Main Table -->
+    <div class="glass-panel rounded-xl overflow-hidden min-h-[400px]">
+        <table class="table w-full" :class="{'table-xs': $store.settings.compact, 'table-sm': !$store.settings.compact}">
+            <thead
+                class="bg-space-900/50 text-gray-500 font-mono text-xs uppercase tracking-wider border-b border-space-border">
+                <tr>
+                    <th class="w-8 py-3 pl-4" x-text="$store.global.t('stat')">Stat</th>
+                    <th class="py-3" x-text="$store.global.t('modelIdentity')">Model Identity</th>
+                    <th class="w-48 py-3" x-text="$store.global.t('globalQuota')">Global Quota</th>
+                    <th class="w-32 py-3" x-text="$store.global.t('nextReset')">Next Reset</th>
+                    <th class="py-3 pr-4 text-right" x-text="$store.global.t('distribution')">Account
+                        Distribution</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-space-border/50 text-sm">
+                <template x-for="row in $store.data.quotaRows" :key="row.modelId">
+                    <tr class="hover:bg-white/5 transition-colors group">
+                        <td class="pl-4">
+                            <div class="w-2 h-2 rounded-full transition-all duration-500"
+                                :class="row.avgQuota > 0 ? 'bg-neon-green shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]'">
+                            </div>
+                        </td>
+                        <td>
+                            <div class="font-bold text-gray-200 group-hover:text-neon-purple transition-colors"
+                                x-text="row.modelId"></div>
+                            <div class="text-[10px] font-mono text-gray-500 uppercase" x-text="row.family">
+                            </div>
+                        </td>
+                        <td>
+                            <div class="flex flex-col gap-1 pr-4">
+                                <div class="flex justify-between text-xs font-mono">
+                                    <span x-text="row.avgQuota + '%'"
+                                        :class="row.avgQuota > 0 ? 'text-white' : 'text-red-500'"></span>
+                                </div>
+                                <progress class="progress w-full h-1.5 bg-space-800"
+                                    :class="row.avgQuota > 50 ? 'progress-gradient-success' : (row.avgQuota > 0 ? 'progress-gradient-warning' : 'progress-gradient-error')"
+                                    :value="row.avgQuota" max="100"></progress>
+                            </div>
+                        </td>
+                        <td class="font-mono text-xs">
+                             <span x-text="row.resetIn" :class="(row.resetIn && row.resetIn.indexOf('h') === -1 && row.resetIn !== '-') ? 'text-neon-purple font-bold' : 'text-gray-400'"></span>
+                        </td>
+                        <td>
+                            <div class="flex items-center justify-end gap-3 pr-4">
+                                <div class="text-[10px] font-mono text-gray-500 hidden xl:block text-right leading-tight opacity-70">
+                                    <div x-text="row.quotaInfo.filter(q => q.pct > 0).length + ' Active'"></div>
+                                </div>
+                                <div class="flex flex-wrap gap-1 justify-end max-w-[150px]">
+                                    <template x-for="q in row.quotaInfo" :key="q.fullEmail">
+                                        <div class="tooltip tooltip-left" :data-tip="q.fullEmail + ' (' + q.pct + '%)'">
+                                            <div class="w-1.5 h-3 rounded-[1px] transition-all hover:scale-125 cursor-help"
+                                                :class="q.pct > 50 ? 'bg-neon-green opacity-80' : (q.pct > 0 ? 'bg-yellow-500 opacity-80' : 'bg-red-900 opacity-50')">
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </template>
+                <!-- Loading -->
+                <tr x-show="$store.data.loading && !$store.data.quotaRows.length">
+                    <td colspan="5" class="h-64 text-center">
+                        <div class="flex flex-col items-center justify-center gap-3">
+                            <span class="loading loading-bars loading-md text-neon-purple"></span>
+                            <span class="text-xs font-mono text-gray-600 animate-pulse">ESTABLISHING
+                                UPLINK...</span>
+                        </div>
+                    </td>
+                </tr>
+                <!-- Empty -->
+                <tr x-show="!$store.data.loading && $store.data.quotaRows.length === 0">
+                    <td colspan="5" class="h-64 text-center text-gray-600 font-mono text-xs">
+                        NO SIGNAL DETECTED
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

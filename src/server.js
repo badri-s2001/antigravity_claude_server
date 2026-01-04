@@ -6,7 +6,13 @@
 
 import express from 'express';
 import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { sendMessage, sendMessageStream, listModels, getModelQuotas } from './cloudcode/index.js';
+import { mountWebUI } from './webui/index.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 import { forceRefresh } from './auth/token-extractor.js';
 import { REQUEST_BODY_LIMIT } from './constants.js';
 import { AccountManager } from './account-manager/index.js';
@@ -56,6 +62,9 @@ async function ensureInitialized() {
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: REQUEST_BODY_LIMIT }));
+
+// Mount WebUI (optional web interface for account management)
+mountWebUI(app, __dirname, accountManager);
 
 /**
  * Parse error message to extract error type, status code, and user-friendly message
