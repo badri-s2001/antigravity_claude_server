@@ -52,6 +52,11 @@ export async function* sendMessageStream(anthropicRequest, accountManager) {
             account = accountManager.getCurrentStickyAccount(model);
         }
 
+        // Track activity when account is selected
+        if (account) {
+            accountManager.trackActivity(account.email, model);
+        }
+
         // Handle all accounts rate-limited
         if (!account) {
             if (accountManager.isAllRateLimited(model)) {

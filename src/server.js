@@ -114,6 +114,161 @@ app.get('/api/dashboard/status', (req, res) => {
 });
 
 /**
+ * Enhanced Dashboard Data Endpoint
+ * Returns comprehensive data including quotas for all accounts and models
+ */
+app.get('/api/dashboard/full', async (req, res) => {
+    try {
+        await ensureInitialized();
+        const amStatus = accountManager.getStatus();
+        const allAccounts = accountManager.getAllAccounts();
+        const liveStatus = accountManager.getLiveStatus();
+
+        // Fetch quotas for each account in parallel
+        const accountsWithQuotas = await Promise.allSettled(
+            allAccounts.map(async (account) => {
+                const baseInfo = {
+                    email: account.email,
+                    source: account.source || 'oauth',
+                    lastUsed: account.lastUsed,
+                    isInvalid: account.isInvalid,
+                    invalidReason: account.invalidReason,
+                    modelRateLimits: account.modelRateLimits || {}
+                };
+
+                if (account.isInvalid) {
+                    return {
+                        ...baseInfo,
+                        status: 'invalid',
+                        quotas: {}
+                    };
+                }
+
+                try {
+                    const token = await accountManager.getTokenForAccount(account);
+                    const quotas = await getModelQuotas(token);
+
+                    // Check if any model is rate limited
+                    const hasActiveLimits = Object.values(account.modelRateLimits || {}).some(
+                        l => l.isRateLimited && l.resetTime > Date.now()
+                    );
+
+                    return {
+                        ...baseInfo,
+                        status: hasActiveLimits ? 'rate-limited' : 'active',
+                        quotas
+                    };
+                } catch (error) {
+                    return {
+                        ...baseInfo,
+                        status: 'error',
+                        error: error.message,
+                        quotas: {}
+                    };
+                }
+            })
+        );
+
+        // Process results
+        const accounts = accountsWithQuotas.map((result, index) => {
+            if (result.status === 'fulfilled') {
+                return result.value;
+            }
+            return {
+                email: allAccounts[index].email,
+                status: 'error',
+                error: result.reason?.message || 'Unknown error',
+                quotas: {},
+                modelRateLimits: allAccounts[index].modelRateLimits || {}
+            };
+        });
+
+        // Collect all unique model IDs
+        const allModels = new Set();
+        accounts.forEach(acc => {
+            Object.keys(acc.quotas || {}).forEach(m => allModels.add(m));
+        });
+
+        // Get predicted next account
+        const predictedNext = accountManager.predictNextAccount();
+
+        res.json({
+            version: PROXY_VERSION,
+            uptime: process.uptime(),
+            timestamp: Date.now(),
+            summary: {
+                total: amStatus.total,
+                available: amStatus.available,
+                rateLimited: amStatus.rateLimited,
+                invalid: amStatus.invalid
+            },
+            live: {
+                ...liveStatus,
+                predictedNextAccount: predictedNext?.email || null
+            },
+            models: Array.from(allModels).sort(),
+            accounts
+        });
+    } catch (error) {
+        logger.error('[API] Dashboard full data error:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+/**
+ * Live Status Endpoint (lightweight, for frequent polling)
+ */
+app.get('/api/dashboard/live', async (req, res) => {
+    try {
+        await ensureInitialized();
+        const liveStatus = accountManager.getLiveStatus();
+        const predictedNext = accountManager.predictNextAccount();
+
+        res.json({
+            timestamp: Date.now(),
+            uptime: process.uptime(),
+            ...liveStatus,
+            predictedNextAccount: predictedNext?.email || null
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+/**
+ * Settings Endpoint - GET/POST
+ */
+app.get('/api/dashboard/settings', async (req, res) => {
+    try {
+        await ensureInitialized();
+        res.json({
+            selectionMode: accountManager.getSelectionMode(),
+            ...accountManager.getSettings()
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+app.post('/api/dashboard/settings', async (req, res) => {
+    try {
+        await ensureInitialized();
+        const { selectionMode } = req.body;
+
+        if (selectionMode) {
+            await accountManager.setSelectionMode(selectionMode);
+        }
+
+        res.json({
+            success: true,
+            selectionMode: accountManager.getSelectionMode()
+        });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+/**
  * Parse error message to extract error type, status code, and user-friendly message
  */
 function parseError(error) {

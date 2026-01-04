@@ -11,77 +11,240 @@
 </head>
 
 <body>
+    <!-- Animated Background -->
+    <div class="bg-grid"></div>
+    <div class="bg-glow bg-glow-1"></div>
+    <div class="bg-glow bg-glow-2"></div>
+    <div class="bg-glow bg-glow-3"></div>
+
     <div class="container">
+        <!-- Header -->
         <header>
-            <h1>Antigravity Claude Proxy</h1>
-            <div class="status-badge" id="connection-status">Connecting...</div>
+            <div class="header-left">
+                <div class="logo-container">
+                    <div class="logo-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="url(#logo-gradient)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M2 17L12 22L22 17" stroke="url(#logo-gradient)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M2 12L12 17L22 12" stroke="url(#logo-gradient)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <defs>
+                                <linearGradient id="logo-gradient" x1="2" y1="2" x2="22" y2="22">
+                                    <stop offset="0%" stop-color="#06b6d4"/>
+                                    <stop offset="50%" stop-color="#8b5cf6"/>
+                                    <stop offset="100%" stop-color="#ec4899"/>
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
+                    <div class="logo-text">
+                        <h1>Antigravity</h1>
+                        <span class="logo-subtitle">Claude Proxy</span>
+                    </div>
+                </div>
+                <span class="version-tag" id="version">v-</span>
+            </div>
+            <div class="header-right">
+                <div class="status-badge" id="connection-status">
+                    <span class="status-pulse"></span>
+                    <span class="status-text">Connecting</span>
+                </div>
+                <button class="refresh-btn glass-btn" id="refresh-btn" title="Refresh Now">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                    </svg>
+                </button>
+            </div>
         </header>
 
-        <div class="grid">
-            <!-- System Status Card -->
-            <div class="card">
-                <h2>System Status</h2>
-                <div class="stat-grid">
-                    <div class="stat-item">
-                        <span class="label">Uptime</span>
-                        <span class="value" id="uptime">-</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="label">Proxy Version</span>
-                        <span class="value" id="version">-</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="label">Total Accounts</span>
-                        <span class="value" id="total-accounts">-</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="label">Active Accounts</span>
-                        <span class="value success" id="active-accounts">-</span>
-                    </div>
-                </div>
+        <!-- Live Activity Banner -->
+        <div class="live-banner glass-card" id="live-banner">
+            <div class="live-indicator">
+                <span class="live-dot"></span>
+                <span class="live-label">LIVE</span>
             </div>
-
-            <!-- Configuration Card -->
-            <div class="card">
-                <h2>Configuration</h2>
-                <div class="config-info">
-                    <div class="config-row">
-                        <span class="label">Proxy Endpoint</span>
-                        <code class="value">http://localhost:8080/v1</code>
-                    </div>
-                    <div class="config-row">
-                        <span class="label">Mode</span>
-                        <span class="value">Load Balanced (Sticky)</span>
-                    </div>
+            <div class="live-content">
+                <div class="live-item">
+                    <span class="live-title">Current Account</span>
+                    <span class="live-value accent" id="current-account">-</span>
                 </div>
-            </div>
-
-            <!-- Account Health Table -->
-            <div class="card full-width">
-                <h2>Account Health</h2>
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Account</th>
-                                <th>Status</th>
-                                <th>Last Used</th>
-                                <th>Active Limits</th>
-                            </tr>
-                        </thead>
-                        <tbody id="accounts-table-body">
-                            <tr>
-                                <td colspan="4" class="loading">Loading accounts...</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="live-divider"></div>
+                <div class="live-item">
+                    <span class="live-title">Last Model</span>
+                    <span class="live-value" id="last-model">-</span>
+                </div>
+                <div class="live-divider"></div>
+                <div class="live-item">
+                    <span class="live-title">Requests</span>
+                    <span class="live-value counter" id="request-count">0</span>
                 </div>
             </div>
         </div>
 
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card glass-card">
+                <div class="stat-icon cyan">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-value" id="uptime">0s</span>
+                    <span class="stat-label">Uptime</span>
+                </div>
+                <div class="stat-glow cyan"></div>
+            </div>
+
+            <div class="stat-card glass-card">
+                <div class="stat-icon purple">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-value" id="total-accounts">0</span>
+                    <span class="stat-label">Total Accounts</span>
+                </div>
+                <div class="stat-glow purple"></div>
+            </div>
+
+            <div class="stat-card glass-card">
+                <div class="stat-icon green">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                        <polyline points="22 4 12 14.01 9 11.01"/>
+                    </svg>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-value" id="active-accounts">0</span>
+                    <span class="stat-label">Active</span>
+                </div>
+                <div class="stat-glow green"></div>
+            </div>
+
+            <div class="stat-card glass-card">
+                <div class="stat-icon orange">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                        <line x1="12" y1="9" x2="12" y2="13"/>
+                        <line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-value" id="limited-accounts">0</span>
+                    <span class="stat-label">Rate Limited</span>
+                </div>
+                <div class="stat-glow orange"></div>
+            </div>
+        </div>
+
+        <!-- Model Quotas Section -->
+        <section class="section">
+            <div class="section-header">
+                <h2>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                        <line x1="12" y1="22.08" x2="12" y2="12"/>
+                    </svg>
+                    Model Quotas
+                    <span class="quota-scope-label" id="quota-scope-label">(Overall)</span>
+                </h2>
+                <div class="quota-scope-toggle">
+                    <button class="scope-btn active" data-scope="all">All Accounts</button>
+                    <button class="scope-btn" data-scope="current">Current Account</button>
+                </div>
+            </div>
+            <div class="quotas-container" id="quotas-grid">
+                <div class="loading-shimmer"></div>
+            </div>
+        </section>
+
+        <!-- Accounts Section -->
+        <section class="section">
+            <div class="section-header">
+                <h2>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                    Account Pool
+                </h2>
+                <div class="view-toggle">
+                    <button class="toggle-btn active" data-view="cards">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="7" height="7"/>
+                            <rect x="14" y="3" width="7" height="7"/>
+                            <rect x="14" y="14" width="7" height="7"/>
+                            <rect x="3" y="14" width="7" height="7"/>
+                        </svg>
+                    </button>
+                    <button class="toggle-btn" data-view="table">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="8" y1="6" x2="21" y2="6"/>
+                            <line x1="8" y1="12" x2="21" y2="12"/>
+                            <line x1="8" y1="18" x2="21" y2="18"/>
+                            <line x1="3" y1="6" x2="3.01" y2="6"/>
+                            <line x1="3" y1="12" x2="3.01" y2="12"/>
+                            <line x1="3" y1="18" x2="3.01" y2="18"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Cards View -->
+            <div class="accounts-grid" id="accounts-cards">
+                <div class="loading-shimmer"></div>
+            </div>
+
+            <!-- Table View -->
+            <div class="accounts-table-wrapper hidden" id="accounts-table-wrapper">
+                <table class="accounts-table">
+                    <thead>
+                        <tr>
+                            <th>Account</th>
+                            <th>Status</th>
+                            <th>Last Used</th>
+                            <th>Quotas</th>
+                        </tr>
+                    </thead>
+                    <tbody id="accounts-table-body">
+                        <tr><td colspan="4" class="loading-shimmer"></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Active Rate Limits -->
+        <section class="section rate-limits-section" id="rate-limits-card" style="display: none;">
+            <div class="section-header">
+                <h2>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                    Active Cooldowns
+                </h2>
+            </div>
+            <div class="rate-limits-grid" id="rate-limits-list">
+            </div>
+        </section>
+
+        <!-- Footer -->
         <footer>
-            <p>Antigravity Claude Proxy &bull; <a href="https://github.com/badri-s2001/antigravity-claude-proxy"
-                    target="_blank">GitHub</a></p>
+            <div class="footer-content">
+                <span>Antigravity Claude Proxy</span>
+                <span class="footer-divider">•</span>
+                <a href="https://github.com/badri-s2001/antigravity-claude-proxy" target="_blank">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                    GitHub
+                </a>
+            </div>
         </footer>
     </div>
 

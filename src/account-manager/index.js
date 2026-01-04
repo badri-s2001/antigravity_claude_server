@@ -41,6 +41,12 @@ export class AccountManager {
     #tokenCache = new Map(); // email -> { token, extractedAt }
     #projectCache = new Map(); // email -> projectId
 
+    // Live activity tracking
+    #lastActiveAccount = null;
+    #lastActiveModel = null;
+    #lastRequestTime = null;
+    #requestCount = 0;
+
     constructor(configPath = ACCOUNT_CONFIG_PATH) {
         this.#configPath = configPath;
     }
@@ -292,6 +298,122 @@ export class AccountManager {
      */
     getSettings() {
         return { ...this.#settings };
+    }
+
+    /**
+     * Update settings
+     * @param {Object} newSettings - Settings to update
+     */
+    async updateSettings(newSettings) {
+        this.#settings = { ...this.#settings, ...newSettings };
+        await this.saveToDisk();
+    }
+
+    /**
+     * Get selection mode (sticky or round-robin)
+     * @returns {string} Current selection mode
+     */
+    getSelectionMode() {
+        return this.#settings.selectionMode || 'sticky';
+    }
+
+    /**
+     * Set selection mode
+     * @param {string} mode - 'sticky' or 'round-robin'
+     */
+    async setSelectionMode(mode) {
+        if (mode !== 'sticky' && mode !== 'round-robin') {
+            throw new Error('Invalid selection mode. Use "sticky" or "round-robin"');
+        }
+        this.#settings.selectionMode = mode;
+        await this.saveToDisk();
+        logger.info(`[AccountManager] Selection mode changed to: ${mode}`);
+    }
+
+    /**
+     * Track account activity (called when an account is used for a request)
+     * @param {string} email - Account email
+     * @param {string} model - Model being used
+     */
+    trackActivity(email, model) {
+        this.#lastActiveAccount = email;
+        this.#lastActiveModel = model;
+        this.#lastRequestTime = Date.now();
+        this.#requestCount++;
+    }
+
+    /**
+     * Get current active account index
+     * @returns {number} Current index
+     */
+    getCurrentIndex() {
+        return this.#currentIndex;
+    }
+
+    /**
+     * Get next account prediction based on current mode
+     * @param {string} [modelId] - Optional model ID
+     * @returns {Object|null} Predicted next account
+     */
+    predictNextAccount(modelId = null) {
+        const mode = this.getSelectionMode();
+
+        if (mode === 'sticky') {
+            // In sticky mode, predict current account unless rate limited
+            const currentAccount = this.#accounts[this.#currentIndex];
+            if (currentAccount && !currentAccount.isInvalid) {
+                // Check if rate limited for this model
+                if (modelId && currentAccount.modelRateLimits?.[modelId]) {
+                    const limit = currentAccount.modelRateLimits[modelId];
+                    if (limit.isRateLimited && limit.resetTime > Date.now()) {
+                        // Current is rate limited, find next available
+                        return this._findNextAvailable(modelId);
+                    }
+                }
+                return currentAccount;
+            }
+        }
+
+        // Round-robin: predict next in sequence
+        return this._findNextAvailable(modelId);
+    }
+
+    /**
+     * Find next available account
+     * @private
+     */
+    _findNextAvailable(modelId = null) {
+        for (let i = 1; i <= this.#accounts.length; i++) {
+            const idx = (this.#currentIndex + i) % this.#accounts.length;
+            const account = this.#accounts[idx];
+
+            if (account && !account.isInvalid) {
+                if (modelId && account.modelRateLimits?.[modelId]) {
+                    const limit = account.modelRateLimits[modelId];
+                    if (limit.isRateLimited && limit.resetTime > Date.now()) {
+                        continue;
+                    }
+                }
+                return account;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Get live activity status
+     * @returns {Object} Live activity data
+     */
+    getLiveStatus() {
+        return {
+            currentIndex: this.#currentIndex,
+            currentAccount: this.#accounts[this.#currentIndex]?.email || null,
+            lastActiveAccount: this.#lastActiveAccount,
+            lastActiveModel: this.#lastActiveModel,
+            lastRequestTime: this.#lastRequestTime,
+            requestCount: this.#requestCount,
+            selectionMode: this.getSelectionMode()
+        };
     }
 
     /**

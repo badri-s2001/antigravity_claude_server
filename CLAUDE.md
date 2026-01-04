@@ -36,6 +36,9 @@ npm run test:streaming     # Streaming SSE events
 npm run test:interleaved   # Interleaved thinking
 npm run test:images        # Image processing
 npm run test:caching       # Prompt caching
+
+# Run filtered tests
+node tests/run-all.cjs <filter>  # Run tests matching filter
 ```
 
 ## Architecture
@@ -96,7 +99,7 @@ src/
 
 **Key Modules:**
 
-- **src/server.js**: Express server exposing Anthropic-compatible endpoints (`/v1/messages`, `/v1/models`, `/health`, `/account-limits`)
+- **src/server.js**: Express server exposing Anthropic-compatible endpoints (`/v1/messages`, `/v1/models`, `/health`, `/account-limits`, `/dashboard`)
 - **src/cloudcode/**: Cloud Code API client with retry/failover logic, streaming and non-streaming support
 - **src/account-manager/**: Multi-account pool with sticky selection, rate limit handling, and automatic cooldown
 - **src/auth/**: Authentication including Google OAuth, token extraction, and database access
@@ -117,11 +120,18 @@ src/
 - `cache_read_input_tokens` returned in usage metadata when cache hits
 - Token calculation: `input_tokens = promptTokenCount - cachedContentTokenCount`
 
+**Web Dashboard:**
+- Access at `http://localhost:8080/dashboard` when server is running
+- Shows system status, uptime, version, and account health
+- API endpoint `/api/dashboard/status` returns JSON status for the dashboard
+- Static files served from `src/public/`
+
 ## Testing Notes
 
 - Tests require the server to be running (`npm start` in separate terminal)
 - Tests are CommonJS files (`.cjs`) that make HTTP requests to the local proxy
 - Shared test utilities are in `tests/helpers/http-client.cjs`
+- Model configuration for parameterized tests in `tests/helpers/test-models.cjs`
 - Test runner supports filtering: `node tests/run-all.cjs <filter>` to run matching tests
 
 ## Code Organization
