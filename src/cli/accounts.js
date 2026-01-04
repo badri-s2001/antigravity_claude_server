@@ -25,7 +25,8 @@ import {
     startCallbackServer,
     completeOAuthFlow,
     refreshAccessToken,
-    getUserEmail
+    getUserEmail,
+    extractCodeFromInput
 } from '../auth/oauth.js';
 
 const SERVER_PORT = process.env.PORT || DEFAULT_PORT;
@@ -230,6 +231,63 @@ async function addAccount(existingAccounts) {
 }
 
 /**
+ * Add a new account via OAuth with manual code input (no-browser mode)
+ * For headless servers without a desktop environment
+ */
+async function addAccountNoBrowser(existingAccounts, rl) {
+    console.log('\n=== Add Google Account (No-Browser Mode) ===\n');
+
+    // Generate authorization URL
+    const { url, verifier, state } = getAuthorizationUrl();
+
+    console.log('Copy the following URL and open it in a browser on another device:\n');
+    console.log(`   ${url}\n`);
+    console.log('After signing in, you will be redirected to a localhost URL.');
+    console.log('Copy the ENTIRE redirect URL or just the authorization code.\n');
+
+    const input = await rl.question('Paste the callback URL or authorization code: ');
+
+    try {
+        const { code, extractedState } = extractCodeFromInput(input);
+
+        // Validate state if present
+        if (extractedState && extractedState !== state) {
+            console.log('\n⚠ State mismatch detected. This could indicate a security issue.');
+            console.log('Proceeding anyway as this is manual mode...');
+        }
+
+        console.log('\nExchanging authorization code for tokens...');
+        const result = await completeOAuthFlow(code, verifier);
+
+        // Check if account already exists
+        const existing = existingAccounts.find(a => a.email === result.email);
+        if (existing) {
+            console.log(`\n⚠ Account ${result.email} already exists. Updating tokens.`);
+            existing.refreshToken = result.refreshToken;
+            existing.projectId = result.projectId;
+            existing.addedAt = new Date().toISOString();
+            return null; // Don't add duplicate
+        }
+
+        console.log(`\n✓ Successfully authenticated: ${result.email}`);
+        if (result.projectId) {
+            console.log(`  Project ID: ${result.projectId}`);
+        }
+
+        return {
+            email: result.email,
+            refreshToken: result.refreshToken,
+            projectId: result.projectId,
+            addedAt: new Date().toISOString(),
+            modelRateLimits: {}
+        };
+    } catch (error) {
+        console.error(`\n✗ Authentication failed: ${error.message}`);
+        return null;
+    }
+}
+
+/**
  * Interactive remove accounts flow
  */
 async function interactiveRemove(rl) {
@@ -275,8 +333,14 @@ async function interactiveRemove(rl) {
 
 /**
  * Interactive add accounts flow (Main Menu)
+ * @param {Object} rl - readline interface
+ * @param {boolean} noBrowser - if true, use manual code input mode
  */
-async function interactiveAdd(rl) {
+async function interactiveAdd(rl, noBrowser = false) {
+    if (noBrowser) {
+        console.log('\n📋 No-browser mode: You will manually paste the authorization code.\n');
+    }
+
     const accounts = loadAccounts();
 
     if (accounts.length > 0) {
@@ -307,7 +371,11 @@ async function interactiveAdd(rl) {
         return;
     }
 
-    const newAccount = await addAccount(accounts);
+    // Use appropriate add function based on mode
+    const newAccount = noBrowser
+        ? await addAccountNoBrowser(accounts, rl)
+        : await addAccount(accounts);
+
     if (newAccount) {
         accounts.push(newAccount);
         saveAccounts(accounts);
@@ -388,6 +456,7 @@ async function verifyAccounts() {
 async function main() {
     const args = process.argv.slice(2);
     const command = args[0] || 'add';
+    const noBrowser = args.includes('--no-browser');
 
     console.log('╔════════════════════════════════════════╗');
     console.log('║   Antigravity Proxy Account Manager    ║');
@@ -399,7 +468,7 @@ async function main() {
         switch (command) {
             case 'add':
                 await ensureServerStopped();
-                await interactiveAdd(rl);
+                await interactiveAdd(rl, noBrowser);
                 break;
             case 'list':
                 await listAccounts();
@@ -418,6 +487,8 @@ async function main() {
                 console.log('  node src/cli/accounts.js verify  Verify account tokens');
                 console.log('  node src/cli/accounts.js clear   Remove all accounts');
                 console.log('  node src/cli/accounts.js help    Show this help');
+                console.log('\nOptions:');
+                console.log('  --no-browser    Manual authorization code input (for headless servers)');
                 break;
             case 'remove':
                 await ensureServerStopped();

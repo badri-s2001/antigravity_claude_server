@@ -58,6 +58,56 @@ export function getAuthorizationUrl() {
 }
 
 /**
+ * Extract authorization code and state from user input.
+ * User can paste either:
+ * - Full callback URL: http://localhost:51121/oauth-callback?code=xxx&state=xxx
+ * - Just the code parameter: 4/0xxx...
+ *
+ * @param {string} input - User input (URL or code)
+ * @returns {{code: string, state: string|null}} Extracted code and optional state
+ */
+export function extractCodeFromInput(input) {
+    if (!input || typeof input !== 'string') {
+        throw new Error('No input provided');
+    }
+
+    const trimmed = input.trim();
+
+    // Check if it looks like a URL
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+        try {
+            const url = new URL(trimmed);
+            const code = url.searchParams.get('code');
+            const state = url.searchParams.get('state');
+            const error = url.searchParams.get('error');
+
+            if (error) {
+                throw new Error(`OAuth error: ${error}`);
+            }
+
+            if (!code) {
+                throw new Error('No authorization code found in URL');
+            }
+
+            return { code, state };
+        } catch (e) {
+            if (e.message.includes('OAuth error') || e.message.includes('No authorization code')) {
+                throw e;
+            }
+            throw new Error('Invalid URL format');
+        }
+    }
+
+    // Assume it's a raw code
+    // Google auth codes typically start with "4/" and are long
+    if (trimmed.length < 10) {
+        throw new Error('Input is too short to be a valid authorization code');
+    }
+
+    return { code: trimmed, state: null };
+}
+
+/**
  * Start a local server to receive the OAuth callback
  * Returns a promise that resolves with the authorization code
  *
@@ -338,6 +388,7 @@ export async function completeOAuthFlow(code, verifier) {
 
 export default {
     getAuthorizationUrl,
+    extractCodeFromInput,
     startCallbackServer,
     exchangeCode,
     refreshAccessToken,
