@@ -14,20 +14,31 @@ npm install
 npm start                              # Port 8080
 npm start -- --fallback                # Enable model fallback
 npm start -- --debug                   # Debug logging
+npm start -- --port 3000               # Custom port
+npm start -- --log-level debug         # Set log level (silent|error|warn|info|debug|trace)
+npm start -- --log-file proxy.log      # Log to file
+npm start -- --json-logs               # JSON output for parsing
+npm start -- --silent                  # Suppress output except errors
 npm run dev                            # File watching
 
+# Setup wizard
+npm run init                           # Interactive setup wizard
+
 # Account management
-npm run accounts:add                   # OAuth flow
-npm run accounts:add -- --no-browser   # Headless (manual code)
+npm run accounts:add                   # Interactive (OAuth or refresh token)
+npm run accounts:add -- --no-browser   # Headless OAuth (manual URL)
 npm run accounts:add -- --refresh-token  # Use refresh token directly
-npm run accounts:list                  # List accounts
-npm run accounts:verify                # Test tokens
+npm run accounts:list                  # List accounts (alias: accounts ls)
+npm run accounts:remove                # Interactive removal (alias: accounts rm)
+npm run accounts:verify                # Verify all tokens
+npm run accounts:clear                 # Remove all accounts
 
 # With environment variable
 REFRESH_TOKEN=1//xxx npm run accounts:add -- --refresh-token
 
-# Tests (server must be running)
-npm test
+# Tests
+npm test                               # Run unit tests
+npm run test:coverage                  # Run with coverage
 ```
 
 ## Refresh Token Authentication
