@@ -1,0 +1,5 @@
+{
+  "description": "Basic single-turn chat response",
+  "model": "claude-sonnet-4-5-thinking",
+  "addedIn": "1.0.0"
+}
