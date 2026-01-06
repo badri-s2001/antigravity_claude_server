@@ -121,7 +121,7 @@ function createProgram(): Command {
     .description("Verify account tokens are valid")
     .action(async () => {
       const { accountsVerifyCommand } = await import("./commands/accounts-verify.js");
-      accountsVerifyCommand();
+      await accountsVerifyCommand();
     });
 
   accountsCmd
