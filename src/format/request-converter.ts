@@ -7,7 +7,7 @@ import { GEMINI_MAX_OUTPUT_TOKENS, getModelFamily, isThinkingModel } from "../co
 import { convertContentToParts, convertRole } from "./content-converter.js";
 import { sanitizeSchema, cleanSchemaForGemini } from "./schema-sanitizer.js";
 import { restoreThinkingSignatures, removeTrailingThinkingBlocks, reorderAssistantContent, filterUnsignedThinkingBlocks, hasGeminiHistory, needsThinkingRecovery, closeToolLoopForThinking } from "./thinking-utils.js";
-import { logger } from "../utils/logger.js";
+import { getLogger } from "../utils/logger-new.js";
 import type { AnthropicRequest, AnthropicMessage, GoogleRequest, GoogleContent, GooglePart, AnalyzableMessage } from "./types.js";
 
 /**
@@ -70,14 +70,14 @@ export function convertAnthropicToGoogle(anthropicRequest: AnthropicRequest): Go
   let processedMessages: AnthropicMessage[] | AnalyzableMessage[] = messages;
 
   if (isGeminiModel && isThinking && needsThinkingRecovery(messages as AnalyzableMessage[])) {
-    logger.debug("[RequestConverter] Applying thinking recovery for Gemini");
+    getLogger().debug("[RequestConverter] Applying thinking recovery for Gemini");
     processedMessages = closeToolLoopForThinking(messages as AnalyzableMessage[], "gemini") as AnthropicMessage[];
   }
 
   // For Claude: apply recovery only for cross-model (Gemini→Claude) switch
   // Detected by checking if history has Gemini-style tool_use with thoughtSignature
   if (isClaudeModel && isThinking && hasGeminiHistory(messages as AnalyzableMessage[]) && needsThinkingRecovery(messages as AnalyzableMessage[])) {
-    logger.debug("[RequestConverter] Applying thinking recovery for Claude (cross-model from Gemini)");
+    getLogger().debug("[RequestConverter] Applying thinking recovery for Claude (cross-model from Gemini)");
     processedMessages = closeToolLoopForThinking(messages as AnalyzableMessage[], "claude") as AnthropicMessage[];
   }
 
@@ -102,7 +102,7 @@ export function convertAnthropicToGoogle(anthropicRequest: AnthropicRequest): Go
     if (parts.length === 0) {
       // Use '.' instead of '' because claude models reject empty text parts.
       // A single period is invisible in practice but satisfies the API requirement.
-      logger.warn("[RequestConverter] WARNING: Empty parts array after filtering, adding placeholder");
+      getLogger().warn("[RequestConverter] WARNING: Empty parts array after filtering, adding placeholder");
       parts.push({ text: "." });
     }
 
@@ -147,7 +147,7 @@ export function convertAnthropicToGoogle(anthropicRequest: AnthropicRequest): Go
       const thinkingBudget = thinking?.budget_tokens;
       if (thinkingBudget) {
         thinkingConfig.thinking_budget = thinkingBudget;
-        logger.debug(`[RequestConverter] Claude thinking enabled with budget: ${thinkingBudget}`);
+        getLogger().debug(`[RequestConverter] Claude thinking enabled with budget: ${thinkingBudget}`);
 
         // Validate max_tokens > thinking_budget as required by the API
         const currentMaxTokens = googleRequest.generationConfig.maxOutputTokens;
@@ -155,11 +155,11 @@ export function convertAnthropicToGoogle(anthropicRequest: AnthropicRequest): Go
           // Bump max_tokens to allow for some response content
           // Default to budget + 8192 (standard output buffer)
           const adjustedMaxTokens = thinkingBudget + 8192;
-          logger.warn(`[RequestConverter] max_tokens (${currentMaxTokens}) <= thinking_budget (${thinkingBudget}). Adjusting to ${adjustedMaxTokens} to satisfy API requirements`);
+          getLogger().warn(`[RequestConverter] max_tokens (${currentMaxTokens}) <= thinking_budget (${thinkingBudget}). Adjusting to ${adjustedMaxTokens} to satisfy API requirements`);
           googleRequest.generationConfig.maxOutputTokens = adjustedMaxTokens;
         }
       } else {
-        logger.debug("[RequestConverter] Claude thinking enabled (no budget specified)");
+        getLogger().debug("[RequestConverter] Claude thinking enabled (no budget specified)");
       }
 
       googleRequest.generationConfig.thinkingConfig = thinkingConfig;
@@ -169,7 +169,7 @@ export function convertAnthropicToGoogle(anthropicRequest: AnthropicRequest): Go
         includeThoughts: true,
         thinkingBudget: thinking?.budget_tokens ?? 16000,
       };
-      logger.debug(`[RequestConverter] Gemini thinking enabled with budget: ${thinkingConfig.thinkingBudget}`);
+      getLogger().debug(`[RequestConverter] Gemini thinking enabled with budget: ${thinkingConfig.thinkingBudget}`);
 
       googleRequest.generationConfig.thinkingConfig = thinkingConfig;
     }
@@ -203,12 +203,12 @@ export function convertAnthropicToGoogle(anthropicRequest: AnthropicRequest): Go
     });
 
     googleRequest.tools = [{ functionDeclarations }];
-    logger.debug(`[RequestConverter] Tools: ${JSON.stringify(googleRequest.tools).substring(0, 300)}`);
+    getLogger().debug(`[RequestConverter] Tools: ${JSON.stringify(googleRequest.tools).substring(0, 300)}`);
   }
 
   // Cap max tokens for Gemini models
   if (isGeminiModel && googleRequest.generationConfig.maxOutputTokens && googleRequest.generationConfig.maxOutputTokens > GEMINI_MAX_OUTPUT_TOKENS) {
-    logger.debug(`[RequestConverter] Capping Gemini max_tokens from ${googleRequest.generationConfig.maxOutputTokens} to ${GEMINI_MAX_OUTPUT_TOKENS}`);
+    getLogger().debug(`[RequestConverter] Capping Gemini max_tokens from ${googleRequest.generationConfig.maxOutputTokens} to ${GEMINI_MAX_OUTPUT_TOKENS}`);
     googleRequest.generationConfig.maxOutputTokens = GEMINI_MAX_OUTPUT_TOKENS;
   }
 

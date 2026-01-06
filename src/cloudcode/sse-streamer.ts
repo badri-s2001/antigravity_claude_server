@@ -8,7 +8,7 @@
 import * as crypto from "crypto";
 import { MIN_SIGNATURE_LENGTH, getModelFamily } from "../constants.js";
 import { cacheSignature, cacheThinkingSignature } from "../format/signature-cache.js";
-import { logger } from "../utils/logger.js";
+import { getLogger } from "../utils/logger-new.js";
 import type { GoogleResponse } from "../format/types.js";
 
 /**
@@ -334,14 +334,14 @@ export async function* streamSSEResponse(response: ReadableResponse, originalMod
         }
       } catch (parseError) {
         const error = parseError as Error;
-        logger.warn("[CloudCode] SSE parse error:", error.message);
+        getLogger().warn({ error: error.message }, "[CloudCode] SSE parse error");
       }
     }
   }
 
   // Handle no content received
   if (!hasEmittedStart) {
-    logger.warn("[CloudCode] No content parts received, emitting empty message");
+    getLogger().warn("[CloudCode] No content parts received, emitting empty message");
     yield {
       type: "message_start",
       message: {

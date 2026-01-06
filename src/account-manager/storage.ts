@@ -9,7 +9,7 @@ import { constants as fsConstants } from "fs";
 import { dirname } from "path";
 import { ACCOUNT_CONFIG_PATH } from "../constants.js";
 import { getAuthStatus } from "../auth/database.js";
-import { logger } from "../utils/logger.js";
+import { getLogger } from "../utils/logger-new.js";
 import type { Account, AccountConfig, AccountSettings, TokenCacheEntry } from "./types.js";
 
 /**
@@ -59,16 +59,16 @@ export async function loadAccounts(configPath: string = ACCOUNT_CONFIG_PATH): Pr
       activeIndex = 0;
     }
 
-    logger.info(`[AccountManager] Loaded ${accounts.length} account(s) from config`);
+    getLogger().info(`[AccountManager] Loaded ${accounts.length} account(s) from config`);
 
     return { accounts, settings, activeIndex };
   } catch (error) {
     const err = error as NodeJS.ErrnoException;
     if (err.code === "ENOENT") {
       // No config file - return empty
-      logger.info("[AccountManager] No config file found. Using Antigravity database (single account mode)");
+      getLogger().info("[AccountManager] No config file found. Using Antigravity database (single account mode)");
     } else {
-      logger.error("[AccountManager] Failed to load config:", err.message);
+      getLogger().error({ error: err.message }, "[AccountManager] Failed to load config");
     }
     return { accounts: [], settings: {}, activeIndex: 0 };
   }
@@ -97,13 +97,13 @@ export function loadDefaultAccount(dbPath?: string): LoadDefaultAccountResult {
         extractedAt: Date.now(),
       });
 
-      logger.info(`[AccountManager] Loaded default account: ${account.email}`);
+      getLogger().info(`[AccountManager] Loaded default account: ${account.email}`);
 
       return { accounts: [account], tokenCache };
     }
   } catch (error) {
     const err = error as Error;
-    logger.error("[AccountManager] Failed to load default account:", err.message);
+    getLogger().error({ error: err.message }, "[AccountManager] Failed to load default account");
   }
 
   return { accounts: [], tokenCache: new Map() };
@@ -144,6 +144,6 @@ export async function saveAccounts(configPath: string, accounts: Account[], sett
     await writeFile(configPath, JSON.stringify(config, null, 2));
   } catch (error) {
     const err = error as Error;
-    logger.error("[AccountManager] Failed to save config:", err.message);
+    getLogger().error({ error: err.message }, "[AccountManager] Failed to save config");
   }
 }

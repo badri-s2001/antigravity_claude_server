@@ -7,7 +7,7 @@
 import { ANTIGRAVITY_DB_PATH, TOKEN_REFRESH_INTERVAL_MS, ANTIGRAVITY_ENDPOINT_FALLBACKS, ANTIGRAVITY_HEADERS, DEFAULT_PROJECT_ID } from "../constants.js";
 import { refreshAccessToken } from "../auth/oauth.js";
 import { getAuthStatus } from "../auth/database.js";
-import { logger } from "../utils/logger.js";
+import { getLogger } from "../utils/logger-new.js";
 import { isNetworkError } from "../utils/helpers.js";
 import type { Account, TokenCacheEntry, OnInvalidCallback, OnSaveCallback } from "./types.js";
 
@@ -42,17 +42,17 @@ export async function getTokenForAccount(account: Account, tokenCache: Map<strin
         account.invalidReason = null;
         if (onSave) await onSave();
       }
-      logger.success(`[AccountManager] Refreshed OAuth token for: ${account.email}`);
+      getLogger().info(`[AccountManager] Refreshed OAuth token for: ${account.email}`);
     } catch (error) {
       const err = error as Error;
       // Check if it's a transient network error
       if (isNetworkError(err)) {
-        logger.warn(`[AccountManager] Failed to refresh token for ${account.email} due to network error: ${err.message}`);
+        getLogger().warn(`[AccountManager] Failed to refresh token for ${account.email} due to network error: ${err.message}`);
         // Do NOT mark as invalid, just throw so caller knows it failed
         throw new Error(`AUTH_NETWORK_ERROR: ${err.message}`);
       }
 
-      logger.error(`[AccountManager] Failed to refresh token for ${account.email}:`, err.message);
+      getLogger().error({ email: account.email, error: err.message }, `[AccountManager] Failed to refresh token for ${account.email}`);
       // Mark account as invalid (credentials need re-auth)
       if (onInvalid) onInvalid(account.email, err.message);
       throw new Error(`AUTH_INVALID: ${account.email}: ${err.message}`);
@@ -136,28 +136,28 @@ export async function discoverProject(token: string): Promise<string> {
 
       if (!response.ok) {
         const errorText = await response.text();
-        logger.warn(`[AccountManager] Project discovery failed at ${endpoint}: ${response.status} - ${errorText}`);
+        getLogger().warn(`[AccountManager] Project discovery failed at ${endpoint}: ${response.status} - ${errorText}`);
         continue;
       }
 
       const data = (await response.json()) as LoadCodeAssistResponse;
 
       if (typeof data.cloudaicompanionProject === "string") {
-        logger.success(`[AccountManager] Discovered project: ${data.cloudaicompanionProject}`);
+        getLogger().info(`[AccountManager] Discovered project: ${data.cloudaicompanionProject}`);
         return data.cloudaicompanionProject;
       }
       if (data.cloudaicompanionProject?.id) {
-        logger.success(`[AccountManager] Discovered project: ${data.cloudaicompanionProject.id}`);
+        getLogger().info(`[AccountManager] Discovered project: ${data.cloudaicompanionProject.id}`);
         return data.cloudaicompanionProject.id;
       }
     } catch (error) {
       const err = error as Error;
-      logger.warn(`[AccountManager] Project discovery failed at ${endpoint}:`, err.message);
+      getLogger().warn({ endpoint, error: err.message }, "[AccountManager] Project discovery failed");
     }
   }
 
-  logger.warn(`[AccountManager] Project discovery failed for all endpoints. Using default project: ${DEFAULT_PROJECT_ID}`);
-  logger.warn(`[AccountManager] If you see 404 errors, your account may not have Gemini Code Assist enabled.`);
+  getLogger().warn(`[AccountManager] Project discovery failed for all endpoints. Using default project: ${DEFAULT_PROJECT_ID}`);
+  getLogger().warn(`[AccountManager] If you see 404 errors, your account may not have Gemini Code Assist enabled.`);
   return DEFAULT_PROJECT_ID;
 }
 

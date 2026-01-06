@@ -8,7 +8,7 @@
 
 import { TOKEN_REFRESH_INTERVAL_MS, ANTIGRAVITY_AUTH_PORT } from "../constants.js";
 import { getAuthStatus } from "./database.js";
-import { logger } from "../utils/logger.js";
+import { getLogger } from "../utils/logger-new.js";
 
 /**
  * Chat params structure from Antigravity HTML page
@@ -59,23 +59,23 @@ async function getTokenData(): Promise<{ apiKey: string }> {
   try {
     const dbData = getAuthStatus();
     if (dbData.apiKey) {
-      logger.info("[Token] Got fresh token from SQLite database");
+      getLogger().info("[Token] Got fresh token from SQLite database");
       return dbData;
     }
   } catch {
-    logger.warn("[Token] DB extraction failed, trying HTML page...");
+    getLogger().warn("[Token] DB extraction failed, trying HTML page...");
   }
 
   // Fallback to HTML page
   try {
     const pageData = await extractChatParams();
     if (pageData.apiKey) {
-      logger.warn("[Token] Got token from HTML page (may be stale)");
+      getLogger().warn("[Token] Got token from HTML page (may be stale)");
       return { apiKey: pageData.apiKey };
     }
   } catch (err) {
     const error = err as Error;
-    logger.warn(`[Token] HTML page extraction failed: ${error.message}`);
+    getLogger().warn(`[Token] HTML page extraction failed: ${error.message}`);
   }
 
   throw new Error("Could not extract token from Antigravity. " + "Make sure Antigravity is running and you are logged in.");

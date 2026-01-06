@@ -10,7 +10,7 @@ import crypto from "crypto";
 import http from "http";
 import type { IncomingMessage, ServerResponse } from "http";
 import { ANTIGRAVITY_ENDPOINT_FALLBACKS, ANTIGRAVITY_HEADERS, OAUTH_CONFIG, OAUTH_REDIRECT_URI } from "../constants.js";
-import { logger } from "../utils/logger.js";
+import { getLogger } from "../utils/logger-new.js";
 
 /**
  * PKCE code verifier and challenge
@@ -253,7 +253,7 @@ export function startCallbackServer(expectedState: string, timeoutMs = 120000): 
     });
 
     server.listen(OAUTH_CONFIG.callbackPort, () => {
-      logger.info(`[OAuth] Callback server listening on port ${OAUTH_CONFIG.callbackPort}`);
+      getLogger().info(`[OAuth] Callback server listening on port ${OAUTH_CONFIG.callbackPort}`);
     });
 
     // Timeout after specified duration
@@ -298,18 +298,18 @@ export async function exchangeCode(code: string, verifier: string): Promise<OAut
 
   if (!response.ok) {
     const error = await response.text();
-    logger.error(`[OAuth] Token exchange failed: ${response.status} ${error}`);
+    getLogger().error(`[OAuth] Token exchange failed: ${response.status} ${error}`);
     throw new Error(`Token exchange failed: ${error}`);
   }
 
   const tokens = (await response.json()) as TokenResponse;
 
   if (!tokens.access_token) {
-    logger.error("[OAuth] No access token in response:", tokens);
+    getLogger().error({ tokens }, "[OAuth] No access token in response");
     throw new Error("No access token received");
   }
 
-  logger.info(`[OAuth] Token exchange successful, access_token length: ${tokens.access_token.length}`);
+  getLogger().info(`[OAuth] Token exchange successful, access_token length: ${tokens.access_token.length}`);
 
   return {
     accessToken: tokens.access_token,
@@ -373,7 +373,7 @@ export async function getUserEmail(accessToken: string): Promise<string> {
 
   if (!response.ok) {
     const errorText = await response.text();
-    logger.error(`[OAuth] getUserEmail failed: ${response.status} ${errorText}`);
+    getLogger().error(`[OAuth] getUserEmail failed: ${response.status} ${errorText}`);
     throw new Error(`Failed to get user info: ${response.status}`);
   }
 
@@ -425,7 +425,7 @@ export async function discoverProjectId(accessToken: string): Promise<string | n
       }
     } catch (error) {
       const err = error as Error;
-      logger.warn(`[OAuth] Project discovery failed at ${endpoint}:`, err.message);
+      getLogger().warn({ endpoint, error: err.message }, "[OAuth] Project discovery failed");
     }
   }
 
@@ -480,19 +480,19 @@ export async function validateRefreshToken(refreshToken: string): Promise<Accoun
     throw new Error("Invalid refresh token format - token is too short");
   }
 
-  logger.info("[OAuth] Validating refresh token...");
+  getLogger().info("[OAuth] Validating refresh token...");
 
   // Get access token using the refresh token
   const { accessToken } = await refreshAccessToken(trimmed);
 
   // Get user email
   const email = await getUserEmail(accessToken);
-  logger.info(`[OAuth] Token validated for: ${email}`);
+  getLogger().info(`[OAuth] Token validated for: ${email}`);
 
   // Discover project ID
   const projectId = await discoverProjectId(accessToken);
   if (projectId) {
-    logger.info(`[OAuth] Discovered project ID: ${projectId}`);
+    getLogger().info(`[OAuth] Discovered project ID: ${projectId}`);
   }
 
   return {

@@ -5,7 +5,7 @@
 
 import { MIN_SIGNATURE_LENGTH, GEMINI_SKIP_SIGNATURE } from "../constants.js";
 import { getCachedSignature, getCachedSignatureFamily } from "./signature-cache.js";
-import { logger } from "../utils/logger.js";
+import { getLogger } from "../utils/logger-new.js";
 import type { AnthropicContentBlock, GooglePart } from "./types.js";
 
 /**
@@ -108,7 +108,7 @@ export function convertContentToParts(content: string | AnthropicContentBlock[],
           const cachedSig = getCachedSignature(block.id);
           if (cachedSig) {
             signature = cachedSig;
-            logger.debug(`[ContentConverter] Restored signature from cache for: ${block.id}`);
+            getLogger().debug(`[ContentConverter] Restored signature from cache for: ${block.id}`);
           }
         }
 
@@ -168,13 +168,13 @@ export function convertContentToParts(content: string | AnthropicContentBlock[],
 
         // Drop blocks with incompatible signatures for Gemini (cross-model switch)
         if (isGeminiModel && signatureFamily && targetFamily && signatureFamily !== targetFamily) {
-          logger.debug(`[ContentConverter] Dropping incompatible ${signatureFamily} thinking for ${targetFamily} model`);
+          getLogger().debug(`[ContentConverter] Dropping incompatible ${signatureFamily} thinking for ${targetFamily} model`);
           continue;
         }
 
         // Drop blocks with unknown signature origin for Gemini (cold cache - safe default)
         if (isGeminiModel && !signatureFamily && targetFamily) {
-          logger.debug(`[ContentConverter] Dropping thinking with unknown signature origin`);
+          getLogger().debug(`[ContentConverter] Dropping thinking with unknown signature origin`);
           continue;
         }
 

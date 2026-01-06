@@ -7,7 +7,7 @@
  */
 
 import { formatDuration } from "../utils/helpers.js";
-import { logger } from "../utils/logger.js";
+import { getLogger } from "../utils/logger-new.js";
 
 /**
  * Interface for objects with headers (like Response)
@@ -45,14 +45,14 @@ export function parseResetTime(responseOrError: ResponseLike | Error | null | un
       const seconds = parseInt(retryAfter, 10);
       if (!isNaN(seconds)) {
         resetMs = seconds * 1000;
-        logger.debug(`[CloudCode] Retry-After header: ${seconds}s`);
+        getLogger().debug(`[CloudCode] Retry-After header: ${seconds}s`);
       } else {
         // Try parsing as HTTP date
         const date = new Date(retryAfter);
         if (!isNaN(date.getTime())) {
           resetMs = date.getTime() - Date.now();
           if (resetMs > 0) {
-            logger.debug(`[CloudCode] Retry-After date: ${retryAfter}`);
+            getLogger().debug(`[CloudCode] Retry-After date: ${retryAfter}`);
           } else {
             resetMs = null;
           }
@@ -67,7 +67,7 @@ export function parseResetTime(responseOrError: ResponseLike | Error | null | un
         const resetTimestamp = parseInt(ratelimitReset, 10) * 1000;
         resetMs = resetTimestamp - Date.now();
         if (resetMs > 0) {
-          logger.debug(`[CloudCode] x-ratelimit-reset: ${new Date(resetTimestamp).toISOString()}`);
+          getLogger().debug(`[CloudCode] x-ratelimit-reset: ${new Date(resetTimestamp).toISOString()}`);
         } else {
           resetMs = null;
         }
@@ -81,7 +81,7 @@ export function parseResetTime(responseOrError: ResponseLike | Error | null | un
         const seconds = parseInt(resetAfter, 10);
         if (!isNaN(seconds) && seconds > 0) {
           resetMs = seconds * 1000;
-          logger.debug(`[CloudCode] x-ratelimit-reset-after: ${seconds}s`);
+          getLogger().debug(`[CloudCode] x-ratelimit-reset-after: ${seconds}s`);
         }
       }
     }
@@ -98,7 +98,7 @@ export function parseResetTime(responseOrError: ResponseLike | Error | null | un
       const value = parseFloat(quotaDelayMatch[1]);
       const unit = quotaDelayMatch[2].toLowerCase();
       resetMs = unit === "s" ? Math.ceil(value * 1000) : Math.ceil(value);
-      logger.debug(`[CloudCode] Parsed quotaResetDelay from body: ${resetMs}ms`);
+      getLogger().debug(`[CloudCode] Parsed quotaResetDelay from body: ${resetMs}ms`);
     }
 
     // Try to extract "quotaResetTimeStamp" (ISO format like "2025-12-31T07:00:47Z")
@@ -110,7 +110,7 @@ export function parseResetTime(responseOrError: ResponseLike | Error | null | un
           resetMs = resetTime - Date.now();
           // Even if expired or 0, we found a timestamp, so rely on it.
           // But if it's negative, it means "now", so treat as small wait.
-          logger.debug(`[CloudCode] Parsed quotaResetTimeStamp: ${quotaTimestampMatch[1]} (Delta: ${resetMs}ms)`);
+          getLogger().debug(`[CloudCode] Parsed quotaResetTimeStamp: ${quotaTimestampMatch[1]} (Delta: ${resetMs}ms)`);
         }
       }
     }
@@ -121,7 +121,7 @@ export function parseResetTime(responseOrError: ResponseLike | Error | null | un
       const secMatch = /(?:retry[-_]?after[-_]?ms|retryDelay)[:\s"]+([\\d\\.]+)(?:s\b|s")/i.exec(msg);
       if (secMatch?.[1]) {
         resetMs = Math.ceil(parseFloat(secMatch[1]) * 1000);
-        logger.debug(`[CloudCode] Parsed retry seconds from body (precise): ${resetMs}ms`);
+        getLogger().debug(`[CloudCode] Parsed retry seconds from body (precise): ${resetMs}ms`);
       }
     }
 
@@ -130,7 +130,7 @@ export function parseResetTime(responseOrError: ResponseLike | Error | null | un
       const msMatch = /(?:retry[-_]?after[-_]?ms|retryDelay)[:\s"]+(\d+)(?:\s*ms)?(?![\w.])/i.exec(msg);
       if (msMatch?.[1]) {
         resetMs = parseInt(msMatch[1], 10);
-        logger.debug(`[CloudCode] Parsed retry-after-ms from body: ${resetMs}ms`);
+        getLogger().debug(`[CloudCode] Parsed retry-after-ms from body: ${resetMs}ms`);
       }
     }
 
@@ -139,7 +139,7 @@ export function parseResetTime(responseOrError: ResponseLike | Error | null | un
       const secMatch = /retry\s+(?:after\s+)?(\d+)\s*(?:sec|s\b)/i.exec(msg);
       if (secMatch?.[1]) {
         resetMs = parseInt(secMatch[1], 10) * 1000;
-        logger.debug(`[CloudCode] Parsed retry seconds from body: ${secMatch[1]}s`);
+        getLogger().debug(`[CloudCode] Parsed retry seconds from body: ${secMatch[1]}s`);
       }
     }
 
@@ -160,7 +160,7 @@ export function parseResetTime(responseOrError: ResponseLike | Error | null | un
           resetMs = parseInt(durationMatch[6], 10) * 1000;
         }
         if (resetMs !== null) {
-          logger.debug(`[CloudCode] Parsed duration from body: ${formatDuration(resetMs)}`);
+          getLogger().debug(`[CloudCode] Parsed duration from body: ${formatDuration(resetMs)}`);
         }
       }
     }
@@ -173,7 +173,7 @@ export function parseResetTime(responseOrError: ResponseLike | Error | null | un
         if (!isNaN(resetTime)) {
           resetMs = resetTime - Date.now();
           if (resetMs > 0) {
-            logger.debug(`[CloudCode] Parsed ISO reset time: ${isoMatch[1]}`);
+            getLogger().debug(`[CloudCode] Parsed ISO reset time: ${isoMatch[1]}`);
           } else {
             resetMs = null;
           }
@@ -187,7 +187,7 @@ export function parseResetTime(responseOrError: ResponseLike | Error | null | un
   // explicitly bump it up to avoid "Available in 0s" loops.
   if (resetMs !== null) {
     if (resetMs < 1000) {
-      logger.debug(`[CloudCode] Reset time too small (${resetMs}ms), enforcing 2s buffer`);
+      getLogger().debug(`[CloudCode] Reset time too small (${resetMs}ms), enforcing 2s buffer`);
       resetMs = 2000;
     }
   }

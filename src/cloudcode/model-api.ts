@@ -5,7 +5,7 @@
  */
 
 import { ANTIGRAVITY_ENDPOINT_FALLBACKS, ANTIGRAVITY_HEADERS, getModelFamily } from "../constants.js";
-import { logger } from "../utils/logger.js";
+import { getLogger } from "../utils/logger-new.js";
 
 /**
  * Quota information for a model
@@ -107,7 +107,7 @@ export async function fetchAvailableModels(token: string): Promise<AvailableMode
   const headers: Record<string, string> = {
     Authorization: `Bearer ${token}`,
     "Content-Type": "application/json",
-    ...(ANTIGRAVITY_HEADERS),
+    ...ANTIGRAVITY_HEADERS,
   };
 
   for (const endpoint of ANTIGRAVITY_ENDPOINT_FALLBACKS) {
@@ -121,14 +121,14 @@ export async function fetchAvailableModels(token: string): Promise<AvailableMode
 
       if (!response.ok) {
         await response.text();
-        logger.warn(`[CloudCode] fetchAvailableModels error at ${endpoint}: ${response.status}`);
+        getLogger().warn(`[CloudCode] fetchAvailableModels error at ${endpoint}: ${response.status}`);
         continue;
       }
 
       return (await response.json()) as AvailableModelsResponse;
     } catch (error) {
       const err = error as Error;
-      logger.warn(`[CloudCode] fetchAvailableModels failed at ${endpoint}:`, err.message);
+      getLogger().warn({ endpoint, error: err.message }, "[CloudCode] fetchAvailableModels failed");
     }
   }
 

@@ -6,7 +6,7 @@
  */
 
 import { convertGoogleToAnthropic } from "../format/index.js";
-import { logger } from "../utils/logger.js";
+import { getLogger } from "../utils/logger-new.js";
 import type { GoogleResponse, GoogleUsageMetadata, GooglePart, AnthropicResponse } from "../format/types.js";
 
 // Re-export types
@@ -123,7 +123,7 @@ export async function parseThinkingSSEResponse(response: ReadableResponse, origi
         }
       } catch (e) {
         const error = e as Error;
-        logger.debug("[CloudCode] SSE parse warning:", error.message, "Raw:", jsonText.slice(0, 100));
+        getLogger().debug({ error: error.message, raw: jsonText.slice(0, 100) }, "[CloudCode] SSE parse warning");
       }
     }
   }
@@ -152,10 +152,10 @@ export async function parseThinkingSSEResponse(response: ReadableResponse, origi
   };
 
   const partTypes = finalParts.map((p) => (p.thought ? "thought" : p.functionCall ? "functionCall" : "text"));
-  logger.debug("[CloudCode] Response received (SSE), part types:", partTypes);
+  getLogger().debug({ partTypes }, "[CloudCode] Response received (SSE)");
   if (finalParts.some((p) => p.thought)) {
     const thinkingPart = finalParts.find((p) => p.thought);
-    logger.debug("[CloudCode] Thinking signature length:", thinkingPart?.thoughtSignature?.length ?? 0);
+    getLogger().debug({ signatureLength: thinkingPart?.thoughtSignature?.length ?? 0 }, "[CloudCode] Thinking signature");
   }
 
   return convertGoogleToAnthropic(accumulatedResponse, originalModel);

@@ -7,7 +7,7 @@
 
 import { DEFAULT_COOLDOWN_MS } from "../constants.js";
 import { formatDuration } from "../utils/helpers.js";
-import { logger } from "../utils/logger.js";
+import { getLogger } from "../utils/logger-new.js";
 import type { Account, AccountSettings, ModelRateLimit } from "./types.js";
 
 /**
@@ -78,7 +78,7 @@ export function clearExpiredLimits(accounts: Account[]): number {
           limit.isRateLimited = false;
           limit.resetTime = null;
           cleared++;
-          logger.success(`[AccountManager] Rate limit expired for: ${account.email} (model: ${modelId})`);
+          getLogger().info(`[AccountManager] Rate limit expired for: ${account.email} (model: ${modelId})`);
         }
       }
     }
@@ -100,7 +100,7 @@ export function resetAllRateLimits(accounts: Account[]): void {
       }
     }
   }
-  logger.warn("[AccountManager] Reset all rate limits for optimistic retry");
+  getLogger().warn("[AccountManager] Reset all rate limits for optimistic retry");
 }
 
 /**
@@ -130,7 +130,7 @@ export function markRateLimited(accounts: Account[], email: string, resetMs: num
   };
   account.modelRateLimits[modelId] = newLimit;
 
-  logger.warn(`[AccountManager] Rate limited: ${email} (model: ${modelId}). Available in ${formatDuration(cooldownMs)}`);
+  getLogger().warn(`[AccountManager] Rate limited: ${email} (model: ${modelId}). Available in ${formatDuration(cooldownMs)}`);
 
   return true;
 }
@@ -151,9 +151,9 @@ export function markInvalid(accounts: Account[], email: string, reason = "Unknow
   account.invalidReason = reason;
   account.invalidAt = Date.now();
 
-  logger.error(`[AccountManager] Account INVALID: ${email}`);
-  logger.error(`[AccountManager]   Reason: ${reason}`);
-  logger.error(`[AccountManager]   Run 'npm run accounts' to re-authenticate this account`);
+  getLogger().error(`[AccountManager] Account INVALID: ${email}`);
+  getLogger().error(`[AccountManager]   Reason: ${reason}`);
+  getLogger().error(`[AccountManager]   Run 'npm run accounts' to re-authenticate this account`);
 
   return true;
 }
@@ -186,7 +186,7 @@ export function getMinWaitTimeMs(accounts: Account[], modelId: string | null): n
   }
 
   if (soonestAccount) {
-    logger.info(`[AccountManager] Shortest wait: ${formatDuration(minWait)} (account: ${soonestAccount.email})`);
+    getLogger().info(`[AccountManager] Shortest wait: ${formatDuration(minWait)} (account: ${soonestAccount.email})`);
   }
 
   return minWait === Infinity ? DEFAULT_COOLDOWN_MS : minWait;

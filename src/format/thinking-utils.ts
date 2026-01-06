@@ -5,7 +5,7 @@
 
 import { MIN_SIGNATURE_LENGTH } from "../constants.js";
 import { getCachedSignatureFamily } from "./signature-cache.js";
-import { logger } from "../utils/logger.js";
+import { getLogger } from "../utils/logger-new.js";
 import type { ThinkingPart, ConversationState, AnalyzableMessage, AnthropicContentBlock, GooglePart, ModelFamily } from "./types.js";
 
 /**
@@ -33,7 +33,7 @@ export function hasValidSignature(part: ThinkingPart): boolean {
  * @returns True if any tool_use has thoughtSignature (Gemini pattern)
  */
 export function hasGeminiHistory(messages: AnalyzableMessage[]): boolean {
-  return messages.some((msg) => Array.isArray(msg.content) && (msg.content).some((block) => block.type === "tool_use" && (block as { thoughtSignature?: string }).thoughtSignature !== undefined));
+  return messages.some((msg) => Array.isArray(msg.content) && msg.content.some((block) => block.type === "tool_use" && (block as { thoughtSignature?: string }).thoughtSignature !== undefined));
 }
 
 /**
@@ -106,7 +106,7 @@ function filterContentArray(contentArray: (ThinkingPart | GooglePart)[]): (Think
     }
 
     // Drop unsigned thinking blocks
-    logger.debug("[ThinkingUtils] Dropping unsigned thinking block");
+    getLogger().debug("[ThinkingUtils] Dropping unsigned thinking block");
   }
 
   return filtered;
@@ -163,7 +163,7 @@ export function removeTrailingThinkingBlocks(content: AnthropicContentBlock[]): 
   }
 
   if (endIndex < content.length) {
-    logger.debug("[ThinkingUtils] Removed", content.length - endIndex, "trailing unsigned thinking blocks");
+    getLogger().debug({ removedBlocks: content.length - endIndex }, "[ThinkingUtils] Removed trailing unsigned thinking blocks");
     return content.slice(0, endIndex);
   }
 
@@ -199,7 +199,7 @@ export function restoreThinkingSignatures(content: AnthropicContentBlock[]): Ant
   }
 
   if (filtered.length < originalLength) {
-    logger.debug(`[ThinkingUtils] Dropped ${originalLength - filtered.length} unsigned thinking block(s)`);
+    getLogger().debug(`[ThinkingUtils] Dropped ${originalLength - filtered.length} unsigned thinking block(s)`);
   }
 
   return filtered;
@@ -253,7 +253,7 @@ export function reorderAssistantContent(content: AnthropicContentBlock[]): Anthr
   }
 
   if (droppedEmptyBlocks > 0) {
-    logger.debug(`[ThinkingUtils] Dropped ${droppedEmptyBlocks} empty text block(s)`);
+    getLogger().debug(`[ThinkingUtils] Dropped ${droppedEmptyBlocks} empty text block(s)`);
   }
 
   const reordered = [...thinkingBlocks, ...textBlocks, ...toolUseBlocks];
@@ -263,7 +263,7 @@ export function reorderAssistantContent(content: AnthropicContentBlock[]): Anthr
     const originalOrder = content.map((b) => b?.type ?? "unknown").join(",");
     const newOrder = reordered.map((b) => b?.type ?? "unknown").join(",");
     if (originalOrder !== newOrder) {
-      logger.debug("[ThinkingUtils] Reordered assistant content");
+      getLogger().debug("[ThinkingUtils] Reordered assistant content");
     }
   }
 
@@ -478,7 +478,7 @@ function stripInvalidThinkingBlocks(messages: AnalyzableMessage[], targetFamily:
   });
 
   if (strippedCount > 0) {
-    logger.debug(`[ThinkingUtils] Stripped ${strippedCount} invalid/incompatible thinking block(s)`);
+    getLogger().debug(`[ThinkingUtils] Stripped ${strippedCount} invalid/incompatible thinking block(s)`);
   }
 
   return result;
@@ -519,7 +519,7 @@ export function closeToolLoopForThinking(messages: AnalyzableMessage[], targetFa
       content: [{ type: "text", text: "[Tool call was interrupted.]" }],
     } as AnalyzableMessage);
 
-    logger.debug("[ThinkingUtils] Applied thinking recovery for interrupted tool");
+    getLogger().debug("[ThinkingUtils] Applied thinking recovery for interrupted tool");
   } else if (state.inToolLoop) {
     // For tool loops: add synthetic messages to close the loop
     const syntheticText = state.toolResultCount === 1 ? "[Tool execution completed.]" : `[${state.toolResultCount} tool executions completed.]`;
@@ -536,7 +536,7 @@ export function closeToolLoopForThinking(messages: AnalyzableMessage[], targetFa
       content: [{ type: "text", text: "[Continue]" }],
     } as AnalyzableMessage);
 
-    logger.debug("[ThinkingUtils] Applied thinking recovery for tool loop");
+    getLogger().debug("[ThinkingUtils] Applied thinking recovery for tool loop");
   }
 
   return modified;

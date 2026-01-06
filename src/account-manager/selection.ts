@@ -7,7 +7,7 @@
 
 import { MAX_WAIT_BEFORE_ERROR_MS } from "../constants.js";
 import { formatDuration } from "../utils/helpers.js";
-import { logger } from "../utils/logger.js";
+import { getLogger } from "../utils/logger-new.js";
 import { clearExpiredLimits, getAvailableAccounts } from "./rate-limits.js";
 import type { Account, OnSaveCallback, AccountSelectionResult, ShouldWaitResult, StickyAccountResult } from "./types.js";
 
@@ -63,7 +63,7 @@ export function pickNext(accounts: Account[], currentIndex: number, onSave: OnSa
 
       const position = idx + 1;
       const total = accounts.length;
-      logger.info(`[AccountManager] Using account: ${account.email} (${position}/${total})`);
+      getLogger().info(`[AccountManager] Using account: ${account.email} (${position}/${total})`);
 
       // Trigger save (don't await to avoid blocking)
       if (onSave) void onSave();
@@ -178,7 +178,7 @@ export function pickStickyAccount(accounts: Account[], currentIndex: number, onS
     // Found a free account! Switch immediately.
     const { account: nextAccount, newIndex } = pickNext(accounts, currentIndex, onSave, modelId);
     if (nextAccount) {
-      logger.info(`[AccountManager] Switched to new account (failover): ${nextAccount.email}`);
+      getLogger().info(`[AccountManager] Switched to new account (failover): ${nextAccount.email}`);
       return { account: nextAccount, waitMs: 0, newIndex };
     }
   }
@@ -186,14 +186,14 @@ export function pickStickyAccount(accounts: Account[], currentIndex: number, onS
   // No other accounts available. Now checking if we should wait for current account.
   const waitInfo = shouldWaitForCurrentAccount(accounts, currentIndex, modelId);
   if (waitInfo.shouldWait) {
-    logger.info(`[AccountManager] Waiting ${formatDuration(waitInfo.waitMs)} for sticky account: ${waitInfo.account?.email}`);
+    getLogger().info(`[AccountManager] Waiting ${formatDuration(waitInfo.waitMs)} for sticky account: ${waitInfo.account?.email}`);
     return { account: null, waitMs: waitInfo.waitMs, newIndex: currentIndex };
   }
 
   // Current account unavailable for too long/invalid, and no others available?
   const { account: nextAccount, newIndex } = pickNext(accounts, currentIndex, onSave, modelId);
   if (nextAccount) {
-    logger.info(`[AccountManager] Switched to new account for cache: ${nextAccount.email}`);
+    getLogger().info(`[AccountManager] Switched to new account for cache: ${nextAccount.email}`);
   }
   return { account: nextAccount, waitMs: 0, newIndex };
 }

@@ -9,7 +9,7 @@ import { loadAccounts, loadDefaultAccount, saveAccounts } from "./storage.js";
 import { isAllRateLimited as checkAllRateLimited, getAvailableAccounts as getAvailable, getInvalidAccounts as getInvalid, clearExpiredLimits as clearLimits, resetAllRateLimits as resetLimits, markRateLimited as markLimited, markInvalid as markAccountInvalid, getMinWaitTimeMs as getMinWait } from "./rate-limits.js";
 import { getTokenForAccount as fetchToken, getProjectForAccount as fetchProject, clearProjectCache as clearProject, clearTokenCache as clearToken } from "./credentials.js";
 import { pickNext as selectNext, getCurrentStickyAccount as getSticky, shouldWaitForCurrentAccount as shouldWait, pickStickyAccount as selectSticky } from "./selection.js";
-import { logger } from "../utils/logger.js";
+import { getLogger } from "../utils/logger-new.js";
 import type { Account, AccountSettings, TokenCacheEntry, AccountManagerStatus, AccountStatus, ShouldWaitResult } from "./types.js";
 
 // Re-export types for external consumers
@@ -52,7 +52,7 @@ export class AccountManager {
 
     // If config exists but has no accounts, fall back to Antigravity database
     if (this.#accounts.length === 0) {
-      logger.warn("[AccountManager] No accounts in config. Falling back to Antigravity database");
+      getLogger().warn("[AccountManager] No accounts in config. Falling back to Antigravity database");
       const { accounts: defaultAccounts, tokenCache } = loadDefaultAccount();
       this.#accounts = defaultAccounts;
       this.#tokenCache = tokenCache;
@@ -208,7 +208,9 @@ export class AccountManager {
     return fetchToken(
       account,
       this.#tokenCache,
-      (email, reason) => { this.markInvalid(email, reason); },
+      (email, reason) => {
+        this.markInvalid(email, reason);
+      },
       () => this.saveToDisk(),
     );
   }
