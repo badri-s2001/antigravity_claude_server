@@ -1,0 +1,181 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`SSE Event Format Snapshots > Content Block Events > matches snapshot for content_block_delta (input_json) > content-block-delta-input-json 1`] = `
+{
+  "data": {
+    "delta": {
+      "partial_json": "{"location": "San",
+      "type": "input_json_delta",
+    },
+    "index": 1,
+    "type": "content_block_delta",
+  },
+  "event": "content_block_delta",
+}
+`;
+
+exports[`SSE Event Format Snapshots > Content Block Events > matches snapshot for content_block_delta (text) > content-block-delta-text 1`] = `
+{
+  "data": {
+    "delta": {
+      "text": "Hello, ",
+      "type": "text_delta",
+    },
+    "index": 0,
+    "type": "content_block_delta",
+  },
+  "event": "content_block_delta",
+}
+`;
+
+exports[`SSE Event Format Snapshots > Content Block Events > matches snapshot for content_block_delta (thinking) > content-block-delta-thinking 1`] = `
+{
+  "data": {
+    "delta": {
+      "thinking": "Let me consider...",
+      "type": "thinking_delta",
+    },
+    "index": 0,
+    "type": "content_block_delta",
+  },
+  "event": "content_block_delta",
+}
+`;
+
+exports[`SSE Event Format Snapshots > Content Block Events > matches snapshot for content_block_start (text) > content-block-start-text 1`] = `
+{
+  "data": {
+    "content_block": {
+      "text": "",
+      "type": "text",
+    },
+    "index": 0,
+    "type": "content_block_start",
+  },
+  "event": "content_block_start",
+}
+`;
+
+exports[`SSE Event Format Snapshots > Content Block Events > matches snapshot for content_block_start (thinking) > content-block-start-thinking 1`] = `
+{
+  "data": {
+    "content_block": {
+      "thinking": "",
+      "type": "thinking",
+    },
+    "index": 0,
+    "type": "content_block_start",
+  },
+  "event": "content_block_start",
+}
+`;
+
+exports[`SSE Event Format Snapshots > Content Block Events > matches snapshot for content_block_start (tool_use) > content-block-start-tool-use 1`] = `
+{
+  "data": {
+    "content_block": {
+      "id": "toolu_01ABC",
+      "input": {},
+      "name": "get_weather",
+      "type": "tool_use",
+    },
+    "index": 1,
+    "type": "content_block_start",
+  },
+  "event": "content_block_start",
+}
+`;
+
+exports[`SSE Event Format Snapshots > Content Block Events > matches snapshot for content_block_stop > content-block-stop 1`] = `
+{
+  "data": {
+    "index": 0,
+    "type": "content_block_stop",
+  },
+  "event": "content_block_stop",
+}
+`;
+
+exports[`SSE Event Format Snapshots > Error Events > matches snapshot for error event > error-event 1`] = `
+{
+  "data": {
+    "error": {
+      "message": "The API is temporarily overloaded",
+      "type": "overloaded_error",
+    },
+    "type": "error",
+  },
+  "event": "error",
+}
+`;
+
+exports[`SSE Event Format Snapshots > Message Events > matches snapshot for message_delta event > message-delta-event 1`] = `
+{
+  "data": {
+    "delta": {
+      "stop_reason": "end_turn",
+      "stop_sequence": null,
+    },
+    "type": "message_delta",
+    "usage": {
+      "output_tokens": 25,
+    },
+  },
+  "event": "message_delta",
+}
+`;
+
+exports[`SSE Event Format Snapshots > Message Events > matches snapshot for message_start event > message-start-event 1`] = `
+{
+  "data": {
+    "message": {
+      "content": [],
+      "id": "msg_01XYZ",
+      "model": "claude-sonnet-4-5-thinking",
+      "role": "assistant",
+      "stop_reason": null,
+      "stop_sequence": null,
+      "type": "message",
+      "usage": {
+        "input_tokens": 10,
+        "output_tokens": 0,
+      },
+    },
+    "type": "message_start",
+  },
+  "event": "message_start",
+}
+`;
+
+exports[`SSE Event Format Snapshots > Message Events > matches snapshot for message_stop event > message-stop-event 1`] = `
+{
+  "data": {
+    "type": "message_stop",
+  },
+  "event": "message_stop",
+}
+`;
+
+exports[`SSE Event Format Snapshots > Ping Events > matches snapshot for ping event > ping-event 1`] = `
+{
+  "data": {
+    "type": "ping",
+  },
+  "event": "ping",
+}
+`;
+
+exports[`SSE Event Format Snapshots > Signature Events > matches snapshot for content_block_stop with signature > content-block-stop-with-signature 1`] = `
+{
+  "data": {
+    "content_block": {
+      "signature": "sig_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "thinking": "Full thinking content here...",
+      "type": "thinking",
+    },
+    "index": 0,
+    "type": "content_block_stop",
+  },
+  "event": "content_block_stop",
+}
+`;
