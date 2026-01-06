@@ -95,7 +95,7 @@ function createProgram(): Command {
     .option("--refresh-token", "use refresh token directly")
     .action(async (options: { noBrowser?: boolean; refreshToken?: boolean }) => {
       const { accountsAddCommand } = await import("./commands/accounts-add.js");
-      accountsAddCommand(options);
+      await accountsAddCommand(options);
     });
 
   accountsCmd
