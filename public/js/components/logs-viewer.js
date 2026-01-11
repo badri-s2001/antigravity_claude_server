@@ -64,28 +64,53 @@ window.Components.logsViewer = () => ({
             : '/api/logs/stream?history=true';
 
         this.eventSource = new EventSource(url);
+
+        // Batch processing buffer
+        let logBuffer = [];
+        let processingFrame = null;
+
+        const processBuffer = () => {
+            if (logBuffer.length === 0) {
+                processingFrame = null;
+                return;
+            }
+
+            // Process current batch
+            this.logs.push(...logBuffer);
+            logBuffer = [];
+
+            // Limit log buffer
+            const limit = Alpine.store('settings')?.logLimit || window.AppConstants.LIMITS.DEFAULT_LOG_LIMIT;
+            if (this.logs.length > limit) {
+                this.logs = this.logs.slice(-limit);
+            }
+
+            if (this.isAutoScroll) {
+                this.$nextTick(() => this.scrollToBottom());
+            }
+
+            processingFrame = null;
+        };
+
         this.eventSource.onmessage = (event) => {
             try {
                 const log = JSON.parse(event.data);
-                this.logs.push(log);
+                logBuffer.push(log);
 
-                // Limit log buffer
-                const limit = Alpine.store('settings')?.logLimit || window.AppConstants.LIMITS.DEFAULT_LOG_LIMIT;
-                if (this.logs.length > limit) {
-                    this.logs = this.logs.slice(-limit);
-                }
-
-                if (this.isAutoScroll) {
-                    this.$nextTick(() => this.scrollToBottom());
+                // Schedule update if not already scheduled
+                if (!processingFrame) {
+                    processingFrame = requestAnimationFrame(processBuffer);
                 }
             } catch (e) {
                 console.error('Log parse error:', e);
             }
         };
 
-        this.eventSource.onerror = () => {
+        this.eventSource.onerror = (err) => {
             console.warn('Log stream disconnected, reconnecting...');
-            setTimeout(() => this.startLogStream(), 3000);
+            if (this.eventSource.readyState === EventSource.CLOSED) {
+                 setTimeout(() => this.startLogStream(), 3000);
+            }
         };
     },
 

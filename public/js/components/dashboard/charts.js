@@ -134,7 +134,7 @@ window.DashboardCharts.createDataset = function (label, data, color, canvas) {
  * Update quota distribution donut chart
  * @param {object} component - Dashboard component instance
  */
-window.DashboardCharts.updateCharts = function (component) {
+window.DashboardCharts.updateCharts = function (component, retryCount = 0) {
   // Safely destroy existing chart instance FIRST
   if (component.charts.quotaDistribution) {
     try {
@@ -149,7 +149,12 @@ window.DashboardCharts.updateCharts = function (component) {
 
   // Safety checks
   if (!canvas) {
-    console.debug("quotaChart canvas not found");
+    // If canvas is missing, it might be due to route change, don't retry indefinitely
+    if (retryCount < 3) {
+        setTimeout(() => window.DashboardCharts.updateCharts(component, retryCount + 1), 100);
+    } else {
+        console.debug("quotaChart canvas not found");
+    }
     return;
   }
   if (typeof Chart === "undefined") {
@@ -157,7 +162,12 @@ window.DashboardCharts.updateCharts = function (component) {
     return;
   }
   if (!isCanvasReady(canvas)) {
-    console.debug("quotaChart canvas not ready, skipping update");
+    if (retryCount < 5) {
+        console.debug(`quotaChart canvas not ready, retrying (${retryCount + 1}/5)...`);
+        setTimeout(() => window.DashboardCharts.updateCharts(component, retryCount + 1), 100);
+    } else {
+        console.debug("quotaChart canvas not ready after retries, skipping update");
+    }
     return;
   }
 
@@ -286,9 +296,9 @@ window.DashboardCharts.updateCharts = function (component) {
  * Update usage trend line chart
  * @param {object} component - Dashboard component instance
  */
-window.DashboardCharts.updateTrendChart = function (component) {
+window.DashboardCharts.updateTrendChart = function (component, retryCount = 0) {
   // Prevent concurrent updates (fixes race condition on rapid toggling)
-  if (_trendChartUpdateLock) {
+  if (_trendChartUpdateLock && retryCount === 0) {
     console.log("[updateTrendChart] Update already in progress, skipping");
     return;
   }
@@ -314,10 +324,12 @@ window.DashboardCharts.updateTrendChart = function (component) {
   // Safety checks
   if (!canvas) {
     console.error("[updateTrendChart] Canvas not found in DOM!");
+    _trendChartUpdateLock = false;
     return;
   }
   if (typeof Chart === "undefined") {
     console.error("[updateTrendChart] Chart.js not loaded");
+    _trendChartUpdateLock = false;
     return;
   }
 
@@ -330,7 +342,14 @@ window.DashboardCharts.updateTrendChart = function (component) {
   });
 
   if (!isCanvasReady(canvas)) {
-    console.error("[updateTrendChart] Canvas not ready!", {
+    if (retryCount < 5) {
+        console.warn(`[updateTrendChart] Canvas not ready, retrying (${retryCount + 1}/5)...`);
+        _trendChartUpdateLock = false;
+        setTimeout(() => window.DashboardCharts.updateTrendChart(component, retryCount + 1), 100);
+        return;
+    }
+
+    console.error("[updateTrendChart] Canvas not ready after retries!", {
       isConnected: canvas.isConnected,
       width: canvas.offsetWidth,
       height: canvas.offsetHeight,
