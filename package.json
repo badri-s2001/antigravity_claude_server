@@ -37,7 +37,50 @@
     "test:crossmodel": "node tests/test-cross-model-thinking.cjs",
     "test:oauth": "node tests/test-oauth-no-browser.cjs",
     "test:emptyretry": "node tests/test-empty-response-retry.cjs",
-    "test:sanitizer": "node tests/test-schema-sanitizer.cjs"
+    "test:sanitizer": "node tests/test-schema-sanitizer.cjs",
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac",
+    "build:linux": "electron-builder --linux",
+    "dist": "electron-builder"
+  },
+  "build": {
+    "appId": "com.antigravity.claude-proxy",
+    "productName": "Antigravity Claude Proxy",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "src/**/*",
+      "public/**/*",
+      "node_modules/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        },
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
+    "mac": {
+      "target": ["dmg", "zip"],
+      "category": "public.app-category.developer-tools"
+    },
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "category": "Development"
+    }
   },
   "keywords": [
     "claude",
@@ -72,6 +115,7 @@
     "concurrently": "^8.2.2",
     "daisyui": "^4.12.14",
     "electron": "^39.2.7",
+    "electron-builder": "^26.4.0",
     "electron-rebuild": "^3.2.9",
     "postcss": "^8.4.32",
     "tailwindcss": "^3.4.0"
