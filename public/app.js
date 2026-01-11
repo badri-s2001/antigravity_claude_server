@@ -58,8 +58,6 @@ document.addEventListener('alpine:init', () => {
         },
 
         init() {
-            console.log('App controller initialized');
-
             // Theme setup
             document.documentElement.setAttribute('data-theme', 'black');
             document.documentElement.classList.add('dark');
