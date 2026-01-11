@@ -60,8 +60,15 @@ export async function* sendMessageStream(anthropicRequest, accountManager, fallb
                 const allWaitMs = accountManager.getMinWaitTimeMs(model);
                 const resetTime = new Date(Date.now() + allWaitMs).toISOString();
 
-                // If wait time is too long (> 2 minutes), throw error immediately
+                // If wait time is too long (> 2 minutes), try fallback first
                 if (allWaitMs > MAX_WAIT_BEFORE_ERROR_MS) {
+                    const fallbackModel = getFallbackModel(model);
+                    if (fallbackEnabled && fallbackModel) {
+                        logger.warn(`[CloudCode] Wait too long (${formatDuration(allWaitMs)}) for ${model}. Falling back to ${fallbackModel}`);
+                        const fallbackRequest = { ...anthropicRequest, model: fallbackModel };
+                        yield* sendMessageStream(fallbackRequest, accountManager, false);
+                        return;
+                    }
                     throw new Error(
                         `RESOURCE_EXHAUSTED: Rate limited on ${model}. Quota will reset after ${formatDuration(allWaitMs)}. Next available: ${resetTime}`
                     );
