@@ -7,7 +7,7 @@
  *   npm run app:debug   # Start with DevTools open
  */
 
-import { app as electronApp, BrowserWindow, nativeImage } from 'electron';
+import { app as electronApp, BrowserWindow, Menu } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { DEFAULT_PORT } from './src/constants.js';
@@ -36,6 +36,7 @@ function createWindow() {
         minHeight: 600,
         title: 'Antigravity Claude Proxy',
         icon: iconPath,
+        autoHideMenuBar: true,
         webPreferences: {
             nodeIntegration: false,
             contextIsolation: true,
@@ -44,6 +45,9 @@ function createWindow() {
         backgroundColor: '#1d232a', // Match DaisyUI dark theme background
         show: false, // Don't show until ready
     });
+
+    // Remove the menu bar completely
+    Menu.setApplicationMenu(null);
 
     const PORT = process.env.PORT || DEFAULT_PORT;
 
