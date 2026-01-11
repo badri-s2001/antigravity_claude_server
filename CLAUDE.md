@@ -95,6 +95,9 @@ src/
 ├── webui/                      # Web Management Interface
 │   └── index.js                # Express router and API endpoints
 │
+├── modules/                    # Feature modules
+│   └── usage-stats.js          # Request tracking and history persistence
+│
 ├── cli/                        # CLI tools
 │   └── accounts.js             # Account management CLI
 │
@@ -124,6 +127,8 @@ public/
 │       └── input.css           # Tailwind source with @apply directives
 ├── js/
 │   ├── app.js                  # Main application logic (Alpine.js)
+│   ├── config/                 # Application configuration
+│   │   └── constants.js        # Centralized UI constants and limits
 │   ├── store.js                # Global state management
 │   ├── data-store.js           # Shared data store (accounts, models, quotas)
 │   ├── settings-store.js       # Settings management store
@@ -161,6 +166,7 @@ public/
 - **src/auth/**: Authentication including Google OAuth, token extraction, database access, and auto-rebuild of native modules
 - **src/format/**: Format conversion between Anthropic and Google Generative AI formats
 - **src/constants.js**: API endpoints, model mappings, fallback config, OAuth config, and all configuration values
+- **src/modules/usage-stats.js**: Tracks request volume by model/family, persists 30-day history to JSON, and auto-prunes old data.
 - **src/fallback-config.js**: Model fallback mappings (`getFallbackModel()`, `hasFallback()`)
 - **src/errors.js**: Custom error classes (`RateLimitError`, `AuthError`, `ApiError`, etc.)
 
@@ -294,6 +300,7 @@ Each account object in `accounts.json` contains:
 - `/api/config/*` - Server configuration (read/write)
 - `/api/claude/config` - Claude CLI settings
 - `/api/logs/stream` - SSE endpoint for real-time logs
+- `/api/stats/history` - Retrieve 30-day request history (sorted chronologically)
 - `/api/auth/url` - Generate Google OAuth URL
 - `/account-limits` - Fetch account quotas and subscription data
   - Returns: `{ accounts: [{ email, subscription: { tier, projectId }, limits: {...} }], models: [...] }`
@@ -338,6 +345,14 @@ async myOperation() {
 - Automatically manages `this.loading` state
 - Shows error toast on failure
 - Always resets loading state in `finally` block
+
+### Frontend Configuration
+
+**Constants**:
+All frontend magic numbers and configuration values are centralized in `public/js/config/constants.js`. Use `window.AppConstants` to access:
+- `INTERVALS`: Refresh rates and timeouts
+- `LIMITS`: Data quotas and display limits
+- `UI`: Animation durations and delay settings
 
 ### Account Operations Service Layer
 
@@ -384,7 +399,8 @@ Dashboard is split into three modules for maintainability:
    - `getInitialState()` - Default filter values
    - `loadPreferences(component)` - Load from localStorage
    - `savePreferences(component)` - Save to localStorage
-   - Filter types: time range, display mode, family/model selection
+   - `autoSelectTopN(component)` - Smart select top 5 active models
+   - Filter types: time range (1h/6h/24h/7d/all), display mode, family/model selection
 
 Each module is well-documented with JSDoc comments.
 
